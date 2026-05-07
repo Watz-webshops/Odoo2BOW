@@ -12,6 +12,7 @@ from app.schemas.export import BelcotaxRequest, ExportSummary, ExportSummaryWarn
 from app.services.aggregation import aggregate
 from app.services.rrn_validator import validate_rrn
 from app.services.xml_generator import generate_bow_xml
+from app.services.xsd_validator import validate_xml
 
 
 async def process_export(export_id: str, request: BelcotaxRequest) -> None:
@@ -63,6 +64,11 @@ async def process_export(export_id: str, request: BelcotaxRequest) -> None:
                 result.fiches,
                 export_ref=export_id,
             )
+
+            xsd_warnings: list[str] = []
+            xsd_ok, xsd_errors = validate_xml(xml_bytes)
+            if not xsd_ok:
+                xsd_warnings = [f"XSD: {e}" for e in xsd_errors[:5]]
 
             warnings = [
                 ExportSummaryWarning(

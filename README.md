@@ -138,9 +138,22 @@ docker compose exec backend alembic downgrade -1
 
 ## XML structuur
 
-De gegenereerde XML volgt de BOW 281.86 specificatie:
+De gegenereerde XML volgt de officiële BOW 281.86 specificatie (`Belcotax-2025.xsd`):
 
 - Bedragen in **centen** (integer)
 - Datums in **DD-MM-YYYY** formaat
 - Automatische aggregatie: meerdere deelnames van hetzelfde kind/ouder/jaar worden samengevoegd tot één fiche
-- RRN-validatie inclusief controlecijfer en geboortedatumafleding
+- RRN-validatie inclusief controlecijfer en geboortedatumafleiding
+- `v0010_bestandtype` = `BELCOTAX` (productie) of `BCTEST` (test)
+- Volledige trailer-records: `r8010..r8013` per Aangifte en `r9010..r9014` per Verzending
+
+### XSD-validatie
+
+De middleware valideert elke gegenereerde XML automatisch tegen de officiële `Belcotax-2025.xsd` (in `backend/app/schemas/` of `backend/app/services/schemas/`). Validatiefouten verschijnen als waarschuwingen in de export-summary.
+
+## Toekomst: automatische indiening
+
+De FOD Financiën werkt aan een **bulks API** voor automatische indiening:
+`https://server.minfin.be/external/api/bulks/v1` (nog niet publiek toegankelijk).
+
+Een placeholder staat klaar in [backend/app/services/bulk_submission.py](backend/app/services/bulk_submission.py). Tot de API publiek is, blijft manuele upload in Belcotax-on-web de werkwijze.
