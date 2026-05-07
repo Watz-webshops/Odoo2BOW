@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { getRole, isLoggedIn } from "@/lib/auth";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function UserLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
@@ -13,14 +13,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       router.replace("/login");
       return;
     }
-    if (getRole() !== "admin") {
-      router.replace("/me/dashboard");
+    if (getRole() !== "user") {
+      router.replace("/dashboard");
     }
   }, [router]);
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar role="admin" />
+      <Sidebar role="user" />
       <main className="flex-1 overflow-auto p-6">{children}</main>
     </div>
   );

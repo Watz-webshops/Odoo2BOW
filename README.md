@@ -12,28 +12,59 @@ frontend (Next.js)  →  backend (FastAPI)  →  PostgreSQL
 
 - **Backend**: Python + FastAPI, async SQLAlchemy, Alembic migraties
 - **Frontend**: Next.js 15 (App Router), TanStack Query, Tailwind CSS
-- **Database**: PostgreSQL 16
+- **Database**: PostgreSQL via [Neon Console](https://console.neon.tech) (serverless)
 
 ---
 
-## Snel starten (development)
+## Snel starten met Neon (aanbevolen)
 
-```bash
-# 1. Maak .env aan
-cp .env.example .env
-# Pas POSTGRES_PASSWORD, SECRET_KEY en ADMIN_JWT_SECRET aan
+1. Ga naar https://console.neon.tech en maak een project aan (bv. `odoo2bow`).
+2. Klik op **Connect** → kies **Pooled connection** → copy de connection string.
+3. Maak `.env` aan en plak de string als `DATABASE_URL` (let op: `postgresql+asyncpg://` ipv `postgresql://`):
+   ```
+   DATABASE_URL=postgresql+asyncpg://user:password@ep-xxx-pooler.region.aws.neon.tech/odoo2bow?ssl=require
+   SECRET_KEY=...minimum-32-tekens...
+   ADMIN_JWT_SECRET=...minimum-32-tekens...
+   ```
+4. Start de stack:
+   ```powershell
+   docker compose up -d --build
+   ```
+5. Voer migraties uit (tegen Neon):
+   ```powershell
+   docker compose exec backend alembic upgrade head
+   ```
+6. Maak de eerste admin aan via Neon Console SQL editor — zie [Eerste admin aanmaken](#eerste-admin-aanmaken) hieronder.
+7. Open http://localhost:3000
 
-# 2. Start de stack
-docker compose up -d
+### Lokale Postgres (offline / optioneel)
 
-# 3. Voer migraties uit
-docker compose exec backend alembic upgrade head
+```powershell
+docker compose --profile local-db up -d
+# DATABASE_URL=postgresql+asyncpg://odoo2bow:changeme@db:5432/odoo2bow
+```
 
-# 4. Maak eerste admin user aan
+---
+
+## Eerste admin aanmaken
+
+**Optie A — via Neon Console (aanbevolen):**
+
+```powershell
+# Genereer bcrypt hash van je wachtwoord
+docker compose run --rm backend python -c "from passlib.hash import bcrypt; print(bcrypt.hash('jouw-wachtwoord'))"
+# → kopieer de output ($2b$12$...)
+```
+
+In Neon Console → **SQL Editor**:
+```sql
+INSERT INTO admin_users (email, password_hash)
+VALUES ('admin@jouw-domein.be', '$2b$12$...PLAK_HASH_HIER...');
+```
+
+**Optie B — via CLI:**
+```powershell
 docker compose exec backend python scripts/create_admin.py admin@voorbeeld.be wachtwoord
-
-# 5. Open de UI
-open http://localhost:3000
 ```
 
 ---

@@ -12,6 +12,7 @@ from app.models.admin_user import AdminUser
 from app.models.api_token import ApiToken
 from app.models.organization import Organization
 from app.schemas.organization import ApiTokenCreate, ApiTokenCreated, ApiTokenResponse
+from app.services.audit import log_action
 
 router = APIRouter()
 
@@ -41,12 +42,18 @@ async def create_token(
     org_id: uuid.UUID,
     body: ApiTokenCreate,
     db: AsyncSession = Depends(get_db),
-    _: AdminUser = Depends(get_current_admin),
+    current: AdminUser = Depends(get_current_admin),
 ):
     await _get_org_or_404(org_id, db)
     raw = generate_api_token()
     token = ApiToken(org_id=org_id, token_hash=hash_token(raw), label=body.label)
     db.add(token)
+    await db.flush()
+    await log_action(
+        db, current, "token.create",
+        target_type="api_token", target_id=str(token.id),
+        details={"org_id": str(org_id), "label": body.label},
+    )
     await db.commit()
     await db.refresh(token)
     return ApiTokenCreated(**ApiTokenResponse.model_validate(token).model_dump(), raw_token=raw)
@@ -57,7 +64,7 @@ async def revoke_token(
     org_id: uuid.UUID,
     token_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    _: AdminUser = Depends(get_current_admin),
+    current: AdminUser = Depends(get_current_admin),
 ):
     await _get_org_or_404(org_id, db)
     token = await db.get(ApiToken, token_id)
@@ -67,4 +74,9 @@ async def revoke_token(
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Token is al ingetrokken")
 
     token.revoked_at = datetime.now(UTC)
+    await log_action(
+        db, current, "token.revoke",
+        target_type="api_token", target_id=str(token.id),
+        details={"org_id": str(org_id)},
+    )
     await db.commit()

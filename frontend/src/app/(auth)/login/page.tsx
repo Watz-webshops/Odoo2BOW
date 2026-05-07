@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { api } from "@/lib/api";
-import { setAccessToken } from "@/lib/auth";
+import { api, type LoginResponse } from "@/lib/api";
+import { setSession } from "@/lib/auth";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,9 +17,15 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.post<{ access_token: string }>("/auth/login", { email, password });
-      setAccessToken(data.access_token);
-      router.push("/dashboard");
+      const data = await api.post<LoginResponse>("/auth/login", { email, password });
+      setSession({
+        accessToken: data.access_token,
+        role: data.role,
+        userId: data.user.id,
+        email: data.user.email,
+        orgId: data.user.org_id,
+      });
+      router.push(data.role === "admin" ? "/dashboard" : "/me/dashboard");
     } catch {
       setError("Ongeldige inloggegevens");
     } finally {

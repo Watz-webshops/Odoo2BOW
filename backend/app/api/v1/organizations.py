@@ -9,6 +9,7 @@ from app.database import get_db
 from app.models.admin_user import AdminUser
 from app.models.organization import Organization
 from app.schemas.organization import OrganizationCreate, OrganizationResponse, OrganizationUpdate
+from app.services.audit import log_action
 
 router = APIRouter()
 
@@ -26,10 +27,16 @@ async def list_organizations(
 async def create_organization(
     body: OrganizationCreate,
     db: AsyncSession = Depends(get_db),
-    _: AdminUser = Depends(get_current_admin),
+    current: AdminUser = Depends(get_current_admin),
 ):
     org = Organization(**body.model_dump())
     db.add(org)
+    await db.flush()
+    await log_action(
+        db, current, "org.create",
+        target_type="organization", target_id=str(org.id),
+        details={"kbo": org.kbo, "name": org.name},
+    )
     await db.commit()
     await db.refresh(org)
     return org
@@ -52,15 +59,21 @@ async def update_organization(
     org_id: uuid.UUID,
     body: OrganizationUpdate,
     db: AsyncSession = Depends(get_db),
-    _: AdminUser = Depends(get_current_admin),
+    current: AdminUser = Depends(get_current_admin),
 ):
     org = await db.get(Organization, org_id)
     if not org:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organisatie niet gevonden")
 
-    for field, value in body.model_dump(exclude_none=True).items():
+    changes = body.model_dump(exclude_none=True)
+    for field, value in changes.items():
         setattr(org, field, value)
 
+    await log_action(
+        db, current, "org.update",
+        target_type="organization", target_id=str(org.id),
+        details={"changed_fields": list(changes.keys())},
+    )
     await db.commit()
     await db.refresh(org)
     return org

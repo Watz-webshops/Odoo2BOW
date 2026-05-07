@@ -1,5 +1,12 @@
 import { getAccessToken } from "./auth";
 
+export type LoginResponse = {
+  access_token: string;
+  token_type: string;
+  role: "admin" | "user";
+  user: { id: string; email: string; org_id?: string };
+};
+
 const BASE = "/api/v1";
 
 class ApiError extends Error {
