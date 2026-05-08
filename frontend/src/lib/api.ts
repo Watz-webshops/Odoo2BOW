@@ -7,7 +7,8 @@ export type LoginResponse = {
   user: { id: string; email: string; org_id?: string };
 };
 
-const BASE = "/api/v1";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const BASE = `${API_URL}/api/v1`;
 
 class ApiError extends Error {
   constructor(public status: number, public body: unknown) {

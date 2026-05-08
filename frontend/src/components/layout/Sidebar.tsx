@@ -9,7 +9,7 @@ import {
   LayoutDashboard,
   LogOut,
   ScrollText,
-  ShieldUser,
+  Shield,
   User as UserIcon,
   Users,
 } from "lucide-react";
@@ -22,7 +22,7 @@ const ADMIN_NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/organizations", label: "Organisaties", icon: Building2 },
   { href: "/users", label: "Users", icon: Users },
-  { href: "/admins", label: "Admins", icon: ShieldUser },
+  { href: "/admins", label: "Admins", icon: Shield },
   { href: "/exports", label: "Exports", icon: FileText },
   { href: "/audit-log", label: "Audit log", icon: ScrollText },
   { href: "/profile", label: "Profiel", icon: UserIcon },

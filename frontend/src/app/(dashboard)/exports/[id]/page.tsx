@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
 import { api } from "@/lib/api";
 import type { ExportRecord, ExportStatus } from "@/types/export";
 import { centsToEur } from "@/lib/utils";
@@ -21,8 +22,9 @@ const STATUS_LABELS: Record<ExportStatus, string> = {
   failed:     "Mislukt",
 };
 
-export default function ExportDetailPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default function ExportDetailPage() {
+  const params = useParams<{ id: string }>();
+  const id = params.id;
 
   const { data: exp } = useQuery({
     queryKey: ["exports", id],
@@ -35,7 +37,8 @@ export default function ExportDetailPage({ params }: { params: { id: string } })
 
   async function downloadXml() {
     const token = (await import("@/lib/auth")).getAccessToken();
-    const res = await fetch(`/api/v1/exports/belcotax/${id}/xml`, {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const res = await fetch(`${apiUrl}/api/v1/exports/belcotax/${id}/xml`, {
       headers: { Authorization: `Bearer ${token ?? ""}` },
     });
     if (!res.ok) return alert("Download mislukt");

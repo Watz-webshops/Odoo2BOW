@@ -5,11 +5,13 @@ from alembic import context
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from app.config import settings
-from app.database import Base
+from app.database import Base, _normalize_neon_url
 import app.models  # noqa: F401 — ensure all models are registered
 
+_db_url, _db_connect_args = _normalize_neon_url(settings.database_url)
+
 config = context.config
-config.set_main_option("sqlalchemy.url", settings.database_url)
+config.set_main_option("sqlalchemy.url", _db_url)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
@@ -36,7 +38,7 @@ def do_run_migrations(connection):
 
 
 async def run_async_migrations() -> None:
-    engine = create_async_engine(settings.database_url)
+    engine = create_async_engine(_db_url, connect_args=_db_connect_args)
     async with engine.begin() as conn:
         await conn.run_sync(do_run_migrations)
     await engine.dispose()

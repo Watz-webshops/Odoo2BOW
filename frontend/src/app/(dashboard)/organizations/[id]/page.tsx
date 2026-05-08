@@ -1,5 +1,6 @@
 "use client";
 
+import { useParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type { Organization, ApiToken, ApiTokenCreated } from "@/types/organization";
@@ -7,8 +8,9 @@ import { formatDate } from "@/lib/utils";
 import { useState } from "react";
 import { KeyRound, Trash2, Copy, Check } from "lucide-react";
 
-export default function OrgDetailPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default function OrgDetailPage() {
+  const params = useParams<{ id: string }>();
+  const id = params.id;
   const qc = useQueryClient();
   const [newToken, setNewToken] = useState<ApiTokenCreated | null>(null);
   const [copied, setCopied] = useState(false);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { centsToEur, cn } from "@/lib/utils";
 import { Download, AlertTriangle } from "lucide-react";
@@ -21,8 +22,9 @@ const STATUS_LABELS: Record<ExportStatus, string> = {
   failed: "Mislukt",
 };
 
-export default function MyExportDetailPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default function MyExportDetailPage() {
+  const params = useParams<{ id: string }>();
+  const id = params.id;
 
   const { data: exp } = useQuery({
     queryKey: ["me", "exports", id],
@@ -35,7 +37,8 @@ export default function MyExportDetailPage({ params }: { params: { id: string } 
 
   async function downloadXml() {
     const token = getAccessToken();
-    const res = await fetch(`/api/v1/me/exports/${id}/xml`, {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const res = await fetch(`${apiUrl}/api/v1/me/exports/${id}/xml`, {
       headers: { Authorization: `Bearer ${token ?? ""}` },
     });
     if (!res.ok) return alert("Download mislukt");

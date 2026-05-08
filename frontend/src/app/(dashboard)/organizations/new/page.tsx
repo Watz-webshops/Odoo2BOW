@@ -44,7 +44,13 @@ export default function NewOrganizationPage() {
     <div className="max-w-xl space-y-5">
       <h1 className="text-xl font-semibold text-gray-900">Nieuwe organisatie</h1>
 
-      <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+      <form onSubmit={handleSubmit((d) => {
+        // Strip empty strings — backend Pydantic optional fields expect null/undefined, not ""
+        const cleaned = Object.fromEntries(
+          Object.entries(d).filter(([, v]) => v !== "" && v !== undefined)
+        ) as unknown as OrganizationCreate;
+        mutation.mutate(cleaned);
+      })} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
         <Field label="KBO-nummer *" error={errors.kbo?.message}>
           <input {...register("kbo")} placeholder="0886886638" className={input()} />
         </Field>
