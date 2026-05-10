@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Building2,
+  Calendar,
   Database,
   FileText,
   KeyRound,
@@ -32,9 +33,10 @@ const ADMIN_NAV = [
 const USER_NAV = [
   { href: "/me/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/me/odoo-connection", label: "Odoo Connectie", icon: Database },
-  { href: "/me/exports", label: "Exports", icon: FileText },
-  { href: "/me/beneficiaries", label: "Begunstigden", icon: Users },
+  { href: "/me/events", label: "Events", icon: Calendar },
   { href: "/me/participations", label: "Deelnames", icon: ScrollText },
+  { href: "/me/beneficiaries", label: "Begunstigden", icon: Users },
+  { href: "/me/exports", label: "Exports", icon: FileText },
   { href: "/me/api-tokens", label: "API Tokens", icon: KeyRound },
   { href: "/me/profile", label: "Profiel", icon: UserIcon },
 ];

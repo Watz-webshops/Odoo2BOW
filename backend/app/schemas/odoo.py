@@ -8,7 +8,7 @@ class OdooConnectionUpsert(BaseModel):
     url: str
     database: str
     username: str
-    api_key: str  # plaintext bij input; backend versleutelt
+    api_key: str | None = None  # leeg/None bij update = bewaarde sleutel behouden
 
 
 class OdooConnectionResponse(BaseModel):

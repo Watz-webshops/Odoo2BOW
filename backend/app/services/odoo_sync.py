@@ -153,13 +153,37 @@ async def _finish_sync_log(
     events: int = 0, regs: int = 0, partners: int = 0, deleted: int = 0,
     error: str | None = None,
 ) -> None:
-    log.events_synced = events
-    log.registrations_synced = regs
-    log.partners_synced = partners
-    log.deleted_count = deleted
-    log.status = "failed" if error else "completed"
-    log.error_detail = error
-    log.completed_at = datetime.now(UTC)
+    """
+    Bij error: rollback eerst zodat de aborted transaction wordt opgeruimd,
+    dan een fresh write van de log entry.
+    """
+    if error:
+        try:
+            await db.rollback()
+        except Exception:
+            pass
+        # Schrijf de error naar een nieuwe log entry of update bestaande via fresh transaction
+        log_id = log.id
+        log = await db.merge(OdooSyncLog(
+            id=log_id,
+            org_id=log.org_id,
+            sync_type=log.sync_type,
+            status="failed",
+            error_detail=(error or "")[:2000],  # safety limit
+            completed_at=datetime.now(UTC),
+            events_synced=events,
+            registrations_synced=regs,
+            partners_synced=partners,
+            deleted_count=deleted,
+            started_at=log.started_at,
+        ))
+    else:
+        log.events_synced = events
+        log.registrations_synced = regs
+        log.partners_synced = partners
+        log.deleted_count = deleted
+        log.status = "completed"
+        log.completed_at = datetime.now(UTC)
     await db.commit()
 
 

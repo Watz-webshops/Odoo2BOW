@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Copy, Check, Database, RefreshCw, Trash2, Zap } from "lucide-react";
@@ -61,6 +61,17 @@ export default function AdminOdooConnectionPage() {
     queryKey: ["org", orgId, "odoo-connection"],
     queryFn: () => api.get<Connection | null>(`${apiBase}/odoo-connection`),
   });
+
+  useEffect(() => {
+    if (conn) {
+      setForm({
+        url: conn.url,
+        database: conn.database,
+        username: conn.username,
+        api_key: "",
+      });
+    }
+  }, [conn]);
 
   const { data: syncStatus } = useQuery({
     queryKey: ["org", orgId, "sync-status"],
@@ -154,8 +165,9 @@ for record in records:
           value={form.database} onChange={(v) => setForm({ ...form, database: v })} required />
         <Field label="Username (e-mail)" placeholder="user@uwbedrijf.be"
           value={form.username} onChange={(v) => setForm({ ...form, username: v })} required />
-        <Field label="API Key" placeholder="Genereer in Odoo: Settings → Users → API Keys"
-          value={form.api_key} onChange={(v) => setForm({ ...form, api_key: v })} type="password" required />
+        <Field label="API Key"
+          placeholder={conn ? "Laat leeg om huidige sleutel te behouden" : "Genereer in Odoo: Settings → Users → API Keys"}
+          value={form.api_key} onChange={(v) => setForm({ ...form, api_key: v })} type="password" required={!conn} />
 
         <div className="flex gap-2">
           <button type="submit" disabled={save.isPending}

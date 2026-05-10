@@ -42,6 +42,17 @@ def classify_question(title: str) -> str | None:
     return None
 
 
+def _normalize_rrn(value: str) -> str:
+    """Strip alles behalve cijfers, max 11 chars."""
+    digits = "".join(c for c in value if c.isdigit())
+    return digits[:11]
+
+
+def _truncate(value: str, max_len: int) -> str:
+    """Veilig knippen om DB-truncation errors te vermijden."""
+    return value.strip()[:max_len]
+
+
 def parse_answers(
     answers: list[dict],
     question_titles: dict[int, str],
@@ -49,11 +60,7 @@ def parse_answers(
 ) -> dict[str, str | None]:
     """
     Returnt dict met child_rrn, child_first_name, child_last_name, parent_rrn.
-
-    answers: list van event.registration.answer records met velden:
-      registration_id, question_id, value_text_box, value_answer_id
-    question_titles: mapping question_id → title (voor classify_question)
-    answer_values: mapping answer_id → name (voor multiple-choice)
+    Normaliseert RRN's (alleen cijfers, max 11) en knipt namen op 100 chars.
     """
     result: dict[str, str | None] = {k: None for k in REQUIRED_QUESTION_KEYS}
     for ans in answers:
@@ -77,8 +84,18 @@ def parse_answers(
             if ansid:
                 value = answer_values.get(ansid)
 
-        if value:
-            result[key] = value
+        if not value:
+            continue
+
+        # Normaliseer per veldtype
+        if key in ("child_rrn", "parent_rrn"):
+            normalized = _normalize_rrn(value)
+            if len(normalized) == 11:
+                result[key] = normalized
+            # Anders: ongeldige RRN → blijft None, fiche wordt later overgeslagen
+        else:
+            # Namen: max 100 chars
+            result[key] = _truncate(value, 100)
 
     return result
 

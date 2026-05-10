@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response, status
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-from sqlalchemy import distinct, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
@@ -13,7 +13,6 @@ from app.core.security import generate_api_token, hash_token
 from app.database import get_db
 from app.models.api_token import ApiToken
 from app.models.export import Export
-from app.models.export_participation import ExportParticipation
 from app.models.organization import Organization
 from app.models.user import User
 from app.schemas.export import (
@@ -143,82 +142,35 @@ async def my_export_xml(
     )
 
 
-# ── Participations (historiek) ─────────────────────────────────────────────
+# ── Live Odoo data: events, deelnames, begunstigden ────────────────────────
+from app.services import odoo_data_query as data_q
+
+
+@router.get("/me/events")
+async def my_events(
+    db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user),
+):
+    return await data_q.list_events(db, user.org_id)
+
+
 @router.get("/me/participations")
 async def my_participations(
     income_year: int | None = None,
     parent_rrn: str | None = None,
     child_rrn: str | None = None,
-    db: AsyncSession = Depends(get_db),
-    user: User = Depends(get_current_user),
+    event_odoo_id: int | None = None,
+    db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user),
 ):
-    stmt = (
-        select(ExportParticipation, Export)
-        .join(Export, ExportParticipation.export_id == Export.id)
-        .where(Export.org_id == user.org_id)
-        .order_by(ExportParticipation.start_date.desc())
-        .limit(500)
+    return await data_q.list_participations(
+        db, user.org_id, income_year, parent_rrn, child_rrn, event_odoo_id,
     )
-    if income_year:
-        stmt = stmt.where(Export.income_year == income_year)
-    if parent_rrn:
-        stmt = stmt.where(ExportParticipation.parent_rrn == parent_rrn)
-    if child_rrn:
-        stmt = stmt.where(ExportParticipation.child_rrn == child_rrn)
-
-    result = await db.execute(stmt)
-    rows = result.all()
-    return [
-        {
-            "id": str(p.id),
-            "export_id": p.export_id,
-            "income_year": e.income_year,
-            "event_name": p.event_name,
-            "start_date": p.start_date.isoformat(),
-            "end_date": p.end_date.isoformat(),
-            "days": p.days,
-            "amount_paid_cents": p.amount_paid_cents,
-            "parent_rrn": p.parent_rrn,
-            "parent_name": f"{p.parent_first_name or ''} {p.parent_last_name or ''}".strip(),
-            "child_rrn": p.child_rrn,
-            "child_name": f"{p.child_first_name or ''} {p.child_last_name or ''}".strip(),
-            "child_birth_date": p.child_birth_date.isoformat() if p.child_birth_date else None,
-        }
-        for p, e in rows
-    ]
 
 
 @router.get("/me/beneficiaries")
 async def my_beneficiaries(
-    db: AsyncSession = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user),
 ):
-    """Geeft unieke ouder/kind paren terug uit alle exports van de eigen org."""
-    stmt = (
-        select(
-            ExportParticipation.parent_rrn,
-            ExportParticipation.parent_first_name,
-            ExportParticipation.parent_last_name,
-            ExportParticipation.child_rrn,
-            ExportParticipation.child_first_name,
-            ExportParticipation.child_last_name,
-            ExportParticipation.child_birth_date,
-        )
-        .join(Export, ExportParticipation.export_id == Export.id)
-        .where(Export.org_id == user.org_id)
-        .distinct()
-    )
-    result = await db.execute(stmt)
-    return [
-        {
-            "parent_rrn": r[0],
-            "parent_name": f"{r[1] or ''} {r[2] or ''}".strip(),
-            "child_rrn": r[3],
-            "child_name": f"{r[4] or ''} {r[5] or ''}".strip(),
-            "child_birth_date": r[6].isoformat() if r[6] else None,
-        }
-        for r in result.all()
-    ]
+    return await data_q.list_beneficiaries(db, user.org_id)
 
 
 # ── Eigen API tokens ───────────────────────────────────────────────────────

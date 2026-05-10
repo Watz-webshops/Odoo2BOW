@@ -20,6 +20,7 @@ from app.schemas.odoo import (
     SyncStatus,
 )
 from app.services import odoo_connection_service as svc
+from app.services import odoo_data_query as data_q
 
 router = APIRouter()
 
@@ -122,3 +123,37 @@ async def admin_export_from_local(
 ):
     await _ensure_org(db, org_id)
     return await svc.start_export_from_local(db, org_id, body.income_year, admin, background_tasks)
+
+
+# ── Read-only Odoo data per organisatie (admin) ────────────────────────────
+@router.get("/organizations/{org_id}/events")
+async def admin_events(
+    org_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db), _: AdminUser = Depends(get_current_admin),
+):
+    await _ensure_org(db, org_id)
+    return await data_q.list_events(db, org_id)
+
+
+@router.get("/organizations/{org_id}/participations")
+async def admin_participations(
+    org_id: uuid.UUID,
+    income_year: int | None = None,
+    parent_rrn: str | None = None,
+    child_rrn: str | None = None,
+    event_odoo_id: int | None = None,
+    db: AsyncSession = Depends(get_db), _: AdminUser = Depends(get_current_admin),
+):
+    await _ensure_org(db, org_id)
+    return await data_q.list_participations(
+        db, org_id, income_year, parent_rrn, child_rrn, event_odoo_id,
+    )
+
+
+@router.get("/organizations/{org_id}/beneficiaries")
+async def admin_beneficiaries(
+    org_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db), _: AdminUser = Depends(get_current_admin),
+):
+    await _ensure_org(db, org_id)
+    return await data_q.list_beneficiaries(db, org_id)

@@ -7,7 +7,7 @@ import { api } from "@/lib/api";
 import type { Organization, ApiToken, ApiTokenCreated } from "@/types/organization";
 import { formatDate } from "@/lib/utils";
 import { useState } from "react";
-import { Database, KeyRound, Trash2, Copy, Check } from "lucide-react";
+import { Calendar, Database, KeyRound, ScrollText, Trash2, Copy, Check, Users } from "lucide-react";
 
 export default function OrgDetailPage() {
   const params = useParams<{ id: string }>();
@@ -61,13 +61,34 @@ export default function OrgDetailPage() {
         <Row label="Taalcode" value={org.language_code} />
       </section>
 
-      <section>
+      <section className="flex flex-wrap gap-2">
         <Link
           href={`/organizations/${id}/odoo-connection`}
           className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-900 text-sm font-medium px-4 py-2.5 rounded-lg"
         >
           <Database className="w-4 h-4 text-brand-600" />
-          Odoo Connectie beheren
+          Odoo Connectie
+        </Link>
+        <Link
+          href={`/organizations/${id}/events`}
+          className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-900 text-sm font-medium px-4 py-2.5 rounded-lg"
+        >
+          <Calendar className="w-4 h-4 text-brand-600" />
+          Events
+        </Link>
+        <Link
+          href={`/organizations/${id}/participations`}
+          className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-900 text-sm font-medium px-4 py-2.5 rounded-lg"
+        >
+          <ScrollText className="w-4 h-4 text-brand-600" />
+          Deelnames
+        </Link>
+        <Link
+          href={`/organizations/${id}/beneficiaries`}
+          className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-900 text-sm font-medium px-4 py-2.5 rounded-lg"
+        >
+          <Users className="w-4 h-4 text-brand-600" />
+          Begunstigden
         </Link>
       </section>
 

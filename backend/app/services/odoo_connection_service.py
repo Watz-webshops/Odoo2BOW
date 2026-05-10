@@ -77,19 +77,21 @@ async def upsert_connection(
     result = await db.execute(select(OdooConnection).where(OdooConnection.org_id == org_id))
     conn = result.scalar_one_or_none()
 
-    api_key_enc = encrypt(body.api_key)
     if conn:
         conn.url = body.url
         conn.database = body.database
         conn.username = body.username
-        conn.api_key_enc = api_key_enc
+        if body.api_key:
+            conn.api_key_enc = encrypt(body.api_key)
         conn.updated_at = datetime.now(UTC)
         action = "odoo.connection.update"
     else:
+        if not body.api_key:
+            raise HTTPException(status_code=400, detail="api_key is required when creating a connection")
         conn = OdooConnection(
             org_id=org_id,
             url=body.url, database=body.database, username=body.username,
-            api_key_enc=api_key_enc,
+            api_key_enc=encrypt(body.api_key),
             webhook_secret=generate_webhook_secret(),
         )
         db.add(conn)
