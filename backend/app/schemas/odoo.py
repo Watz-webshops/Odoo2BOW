@@ -16,6 +16,7 @@ class OdooConnectionResponse(BaseModel):
     url: str
     database: str
     username: str
+    api_key_masked: str  # eerste 4 + bullets + laatste 4 van de bewaarde key
     bootstrap_completed: bool
     is_active: bool
     last_sync_at: datetime | None

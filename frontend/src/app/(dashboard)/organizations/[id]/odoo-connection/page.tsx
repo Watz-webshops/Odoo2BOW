@@ -12,6 +12,7 @@ type Connection = {
   url: string;
   database: string;
   username: string;
+  api_key_masked: string;
   bootstrap_completed: boolean;
   is_active: boolean;
   last_sync_at: string | null;
@@ -165,9 +166,16 @@ for record in records:
           value={form.database} onChange={(v) => setForm({ ...form, database: v })} required />
         <Field label="Username (e-mail)" placeholder="user@uwbedrijf.be"
           value={form.username} onChange={(v) => setForm({ ...form, username: v })} required />
-        <Field label="API Key"
-          placeholder={conn ? "Laat leeg om huidige sleutel te behouden" : "Genereer in Odoo: Settings → Users → API Keys"}
-          value={form.api_key} onChange={(v) => setForm({ ...form, api_key: v })} type="password" required={!conn} />
+        <div>
+          <Field label="API Key"
+            placeholder={conn ? "Laat leeg om huidige sleutel te behouden" : "Genereer in Odoo: Settings → Users → API Keys"}
+            value={form.api_key} onChange={(v) => setForm({ ...form, api_key: v })} type="password" required={!conn} />
+          {conn && (
+            <p className="mt-1 text-xs text-gray-500">
+              Huidige sleutel: <code className="font-mono text-gray-700">{conn.api_key_masked}</code>
+            </p>
+          )}
+        </div>
 
         <div className="flex gap-2">
           <button type="submit" disabled={save.isPending}

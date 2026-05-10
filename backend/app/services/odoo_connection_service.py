@@ -46,9 +46,20 @@ def webhook_url(request: Request, org_id: uuid.UUID) -> str:
     return f"{base}/api/v1/webhooks/odoo/{org_id}"
 
 
+def _mask_api_key(api_key_enc: str) -> str:
+    try:
+        key = decrypt(api_key_enc)
+    except Exception:
+        return "••••••••"
+    if len(key) < 8:
+        return "•" * max(len(key), 4)
+    return f"{key[:4]}••••••••{key[-4:]}"
+
+
 def to_response(conn: OdooConnection, request: Request) -> OdooConnectionResponse:
     return OdooConnectionResponse(
         id=conn.id, url=conn.url, database=conn.database, username=conn.username,
+        api_key_masked=_mask_api_key(conn.api_key_enc),
         bootstrap_completed=conn.bootstrap_completed,
         is_active=conn.is_active,
         last_sync_at=conn.last_sync_at,

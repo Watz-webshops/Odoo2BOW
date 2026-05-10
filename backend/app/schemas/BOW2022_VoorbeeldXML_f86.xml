@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Verzendingen>
+	<Verzending>
+		<v0002_inkomstenjaar>2022</v0002_inkomstenjaar>
+		<v0010_bestandtype>BELCOTAX</v0010_bestandtype>
+		<v0011_aanmaakdatum>01-01-2023</v0011_aanmaakdatum>
+		<v0014_naam>FOD FIN TEST</v0014_naam>
+		<v0015_adres>Teststraat, 10</v0015_adres>
+		<v0016_postcode>1000</v0016_postcode>
+		<v0017_gemeente>Brussel</v0017_gemeente>
+		<v0018_telefoonnummer>02 572 57 57</v0018_telefoonnummer>
+		<v0021_contactpersoon>Belcotax</v0021_contactpersoon>
+		<v0022_taalcode>1</v0022_taalcode>
+		<v0023_emailadres>belcotax@minfin.fed.be</v0023_emailadres>
+		<v0024_nationaalnr>0308357159</v0024_nationaalnr>
+		<v0025_typeenvoi>0</v0025_typeenvoi>
+		<v0028_landwoonplaats>150</v0028_landwoonplaats>
+		<Aangiften>
+			<Aangifte>
+				<a1002_inkomstenjaar>2022</a1002_inkomstenjaar>
+				<a1005_registratienummer>0308357159</a1005_registratienummer>
+				<a1011_naamnl1>FOD FIN TEST</a1011_naamnl1>
+				<a1013_adresnl>Teststraat, 10</a1013_adresnl>
+				<a1014_postcodebelgisch>1000</a1014_postcodebelgisch>
+				<a1015_gemeente>Brussel</a1015_gemeente>
+				<a1016_landwoonplaats>150</a1016_landwoonplaats>
+				<a1020_taalcode>1</a1020_taalcode>
+				<a1027_naamfr1>SPF FIN TEST</a1027_naamfr1>
+				<a1029_adresfr>Rue de test, 10</a1029_adresfr>
+				<a1030_gemeentefr>Bruxelles</a1030_gemeentefr>
+				<a1031_taalfr>2</a1031_taalfr>
+				<a1032_naamde1>FÖD FIN TEST</a1032_naamde1>
+				<a1034_adresde>Teststrasse, 1</a1034_adresde>
+				<a1035_gemeentede>Brüssel</a1035_gemeentede>
+				<a1036_taalde>3</a1036_taalde>
+				<Opgaven>
+					<Opgave32586>
+						<Fiche28186>
+							<f2002_inkomstenjaar>2022</f2002_inkomstenjaar>
+							<f2005_registratienummer>0308357159</f2005_registratienummer>
+							<f2007_division/>
+							<f2008_typefiche>28186</f2008_typefiche>
+							<f2009_volgnummer>1</f2009_volgnummer>
+							<f2010_referentie>test-1</f2010_referentie>
+							<f2011_nationaalnr>99090999997</f2011_nationaalnr>
+							<f2013_naam>Naam</f2013_naam>
+							<f2015_adres>Teststraat, 1</f2015_adres>
+							<f2016_postcodebelgisch>1000</f2016_postcodebelgisch>
+							<f2017_gemeente>Brussel</f2017_gemeente>
+							<f2018_landwoonplaats>150</f2018_landwoonplaats>
+							<f2028_typetraitement>0</f2028_typetraitement>
+							<f2029_enkelopgave325>0</f2029_enkelopgave325>
+							<f2114_voornamen>Voornaam</f2114_voornamen>
+							<f86_2031_certificationautorisation>1</f86_2031_certificationautorisation>
+							<f86_2055_begindate1>01-01-2021</f86_2055_begindate1>
+							<f86_2056_enddate1>30-06-2021</f86_2056_enddate1>
+							<f86_2059_totaalcontrole>220000</f86_2059_totaalcontrole>
+							<f86_2060_amount1>60000</f86_2060_amount1>
+							<f86_2061_amount2>50000</f86_2061_amount2>
+							<f86_2064_totalamount>110000</f86_2064_totalamount>
+							<f86_2093_begindate2>01-09-2021</f86_2093_begindate2>
+							<f86_2100_certifierpostnr>1060</f86_2100_certifierpostnr>
+							<f86_2101_childcountry>150</f86_2101_childcountry>
+							<f86_2102_childaddress>Teststraat, 1</f86_2102_childaddress>
+							<f86_2106_childname>Naam Kind</f86_2106_childname>
+							<f86_2107_childfirstname>Voornaam Kind</f86_2107_childfirstname>
+							<f86_2109_certifiercbenumber>0886886638</f86_2109_certifiercbenumber>
+							<f86_2110_numberofday1>60</f86_2110_numberofday1>
+							<f86_2111_dailytariff1>1000</f86_2111_dailytariff1>
+							<f86_2113_numberofday2>50</f86_2113_numberofday2>
+							<f86_2115_dailytariff2>1000</f86_2115_dailytariff2>
+							<f86_2139_childpostnr>1000</f86_2139_childpostnr>
+							<f86_2140_childmunicipality>Brussel</f86_2140_childmunicipality>
+							<f86_2144_enddate2>31-12-2021</f86_2144_enddate2>
+							<f86_2153_nnchild>00000000128</f86_2153_nnchild>
+							<f86_2154_certifiermunicipality>Sint-Gillis</f86_2154_certifiermunicipality>
+							<f86_2155_certifiername>Kind en Gezin</f86_2155_certifiername>
+							<f86_2156_certifieradres>Hallepoortlaan 27</f86_2156_certifieradres>
+							<f86_2163_childbirthdate>01-01-2015</f86_2163_childbirthdate>
+						</Fiche28186>
+						<Fiche28186>
+							<f2002_inkomstenjaar>2022</f2002_inkomstenjaar>
+							<f2005_registratienummer>0308357159</f2005_registratienummer>
+							<f2007_division/>
+							<f2008_typefiche>28186</f2008_typefiche>
+							<f2009_volgnummer>2</f2009_volgnummer>
+							<f2010_referentie>test-2</f2010_referentie>
+							<f2011_nationaalnr>99090999997</f2011_nationaalnr>
+							<f2013_naam>Nom</f2013_naam>
+							<f2015_adres>Rue de test, 1</f2015_adres>
+							<f2016_postcodebelgisch>1000</f2016_postcodebelgisch>
+							<f2017_gemeente>Bruxelles</f2017_gemeente>
+							<f2018_landwoonplaats>150</f2018_landwoonplaats>
+							<f2028_typetraitement>0</f2028_typetraitement>
+							<f2029_enkelopgave325>0</f2029_enkelopgave325>
+							<f2114_voornamen>Prenom</f2114_voornamen>
+							<f86_2031_certificationautorisation>1</f86_2031_certificationautorisation>
+							<f86_2055_begindate1>01-07-2021</f86_2055_begindate1>
+							<f86_2056_enddate1>11-07-2021</f86_2056_enddate1>
+							<f86_2059_totaalcontrole>20000</f86_2059_totaalcontrole>
+							<f86_2060_amount1>10000</f86_2060_amount1>
+							<f86_2064_totalamount>10000</f86_2064_totalamount>
+							<f86_2100_certifierpostnr>1060</f86_2100_certifierpostnr>
+							<f86_2101_childcountry>150</f86_2101_childcountry>
+							<f86_2102_childaddress>Rue de test, 1</f86_2102_childaddress>
+							<f86_2106_childname>Nom Enfant</f86_2106_childname>
+							<f86_2107_childfirstname>Prenom Enfant</f86_2107_childfirstname>
+							<f86_2109_certifiercbenumber>0231907895</f86_2109_certifiercbenumber>
+							<f86_2110_numberofday1>10</f86_2110_numberofday1>
+							<f86_2111_dailytariff1>1000</f86_2111_dailytariff1>
+							<f86_2139_childpostnr>1000</f86_2139_childpostnr>
+							<f86_2140_childmunicipality>Bruxelles</f86_2140_childmunicipality>
+							<f86_2153_nnchild>00000000128</f86_2153_nnchild>
+							<f86_2154_certifiermunicipality>Saint-Gilles</f86_2154_certifiermunicipality>
+							<f86_2155_certifiername>ONE</f86_2155_certifiername>
+							<f86_2156_certifieradres>Chaussée de Charleroi 95</f86_2156_certifieradres>
+							<f86_2163_childbirthdate>01-01-2015</f86_2163_childbirthdate>
+						</Fiche28186>
+						<Fiche28186>
+							<f2002_inkomstenjaar>2022</f2002_inkomstenjaar>
+							<f2005_registratienummer>0308357159</f2005_registratienummer>
+							<f2007_division/>
+							<f2008_typefiche>28186</f2008_typefiche>
+							<f2009_volgnummer>3</f2009_volgnummer>
+							<f2010_referentie>test-3</f2010_referentie>
+							<f2011_nationaalnr>99090999997</f2011_nationaalnr>
+							<f2013_naam>Name</f2013_naam>
+							<f2015_adres>Teststrasse, 1</f2015_adres>
+							<f2016_postcodebelgisch>1000</f2016_postcodebelgisch>
+							<f2017_gemeente>Brüssel</f2017_gemeente>
+							<f2018_landwoonplaats>150</f2018_landwoonplaats>
+							<f2028_typetraitement>0</f2028_typetraitement>
+							<f2029_enkelopgave325>0</f2029_enkelopgave325>
+							<f2114_voornamen>Vorname</f2114_voornamen>
+							<f86_2031_certificationautorisation>1</f86_2031_certificationautorisation>
+							<f86_2055_begindate1>10-08-2021</f86_2055_begindate1>
+							<f86_2056_enddate1>15-08-2021</f86_2056_enddate1>
+							<f86_2059_totaalcontrole>10000</f86_2059_totaalcontrole>
+							<f86_2060_amount1>5000</f86_2060_amount1>
+							<f86_2064_totalamount>5000</f86_2064_totalamount>
+							<f86_2100_certifierpostnr>1060</f86_2100_certifierpostnr>
+							<f86_2101_childcountry>150</f86_2101_childcountry>
+							<f86_2102_childaddress>Teststrasse, 1</f86_2102_childaddress>
+							<f86_2106_childname>Name Kind</f86_2106_childname>
+							<f86_2107_childfirstname>Vorname Kind</f86_2107_childfirstname>
+							<f86_2109_certifiercbenumber>0231907895</f86_2109_certifiercbenumber>
+							<f86_2110_numberofday1>5</f86_2110_numberofday1>
+							<f86_2111_dailytariff1>1000</f86_2111_dailytariff1>
+							<f86_2139_childpostnr>1000</f86_2139_childpostnr>
+							<f86_2140_childmunicipality>Brüssel</f86_2140_childmunicipality>
+							<f86_2153_nnchild>00000000128</f86_2153_nnchild>
+							<f86_2154_certifiermunicipality>Saint-Gilles</f86_2154_certifiermunicipality>
+							<f86_2155_certifiername>ONE</f86_2155_certifiername>
+							<f86_2156_certifieradres>Chaussée de Charleroi 95</f86_2156_certifieradres>
+							<f86_2163_childbirthdate>01-01-2015</f86_2163_childbirthdate>
+							<f86_2164_beginvaliditycertification>01-08-2021</f86_2164_beginvaliditycertification>
+							<f86_2171_endvaliditycertification>31-08-2021</f86_2171_endvaliditycertification>
+						</Fiche28186>
+					</Opgave32586>
+				</Opgaven>
+				<r8002_inkomstenjaar>2022</r8002_inkomstenjaar>
+				<r8005_registratienummer>0308357159</r8005_registratienummer>
+				<r8007_division/>
+				<r8010_aantalrecords>5</r8010_aantalrecords>
+				<r8011_controletotaal>6</r8011_controletotaal>
+				<r8012_controletotaal>250000</r8012_controletotaal>
+				<r8013_totaalvoorheffingen>0</r8013_totaalvoorheffingen>
+			</Aangifte>
+		</Aangiften>
+		<r9002_inkomstenjaar>2022</r9002_inkomstenjaar>
+		<r9010_aantallogbestanden>3</r9010_aantallogbestanden>
+		<r9011_totaalaantalrecords>7</r9011_totaalaantalrecords>
+		<r9012_controletotaal>6</r9012_controletotaal>
+		<r9013_controletotaal>250000</r9013_controletotaal>
+		<r9014_controletotaal>0</r9014_controletotaal>
+	</Verzending>
+</Verzendingen>
