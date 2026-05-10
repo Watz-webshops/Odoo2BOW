@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Zap } from "lucide-react";
 import { api } from "@/lib/api";
 import { centsToEur } from "@/lib/utils";
 import { cn } from "@/lib/utils";
@@ -22,6 +24,10 @@ const STATUS_LABELS: Record<ExportStatus, string> = {
 };
 
 export default function MyExportsPage() {
+  const qc = useQueryClient();
+  const [showModal, setShowModal] = useState(false);
+  const [year, setYear] = useState(new Date().getFullYear());
+
   const { data: exports, isLoading } = useQuery({
     queryKey: ["me", "exports"],
     queryFn: () => api.get<ExportRecord[]>("/me/exports"),
@@ -31,13 +37,60 @@ export default function MyExportsPage() {
     },
   });
 
+  const generateFromLocal = useMutation({
+    mutationFn: (income_year: number) =>
+      api.post<{ export_id: string }>("/me/exports/from-local", { income_year }),
+    onSuccess: () => {
+      setShowModal(false);
+      qc.invalidateQueries({ queryKey: ["me", "exports"] });
+    },
+  });
+
   return (
     <div className="space-y-5">
-      <h1 className="text-xl font-semibold text-gray-900">Mijn exports</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-semibold text-gray-900">Mijn exports</h1>
+        <button onClick={() => setShowModal(true)}
+          className="inline-flex items-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-3 py-2 rounded-lg">
+          <Zap className="w-4 h-4" />
+          Genereer XML uit Odoo data
+        </button>
+      </div>
 
       <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm text-blue-800">
-        Exports worden aangemaakt via de API met een Bearer token (zie <Link href="/me/api-tokens" className="underline">API Tokens</Link>).
+        Exports kan je ook aanmaken via de API met een Bearer token (zie <Link href="/me/api-tokens" className="underline">API Tokens</Link>).
       </div>
+
+      {showModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-sm space-y-4">
+            <h2 className="font-semibold text-gray-900">Genereer XML uit Odoo data</h2>
+            <p className="text-sm text-gray-600">
+              De middleware gebruikt de gesyncde Odoo data om de Belcotax 281.86 XML te genereren.
+            </p>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Inkomstenjaar</label>
+              <select value={year} onChange={(e) => setYear(parseInt(e.target.value, 10))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                {[2024, 2025, 2026, 2027].map((y) => <option key={y} value={y}>{y}</option>)}
+              </select>
+            </div>
+            {generateFromLocal.error ? (
+              <p className="text-sm text-red-600">Fout — controleer of je Odoo connectie gesynced is</p>
+            ) : null}
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setShowModal(false)}
+                className="px-4 py-2 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">
+                Annuleren
+              </button>
+              <button onClick={() => generateFromLocal.mutate(year)} disabled={generateFromLocal.isPending}
+                className="px-4 py-2 text-sm rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-medium disabled:opacity-50">
+                {generateFromLocal.isPending ? "Bezig..." : "Genereren"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {isLoading && <p className="text-sm text-gray-500">Laden...</p>}
 

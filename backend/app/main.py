@@ -9,13 +9,18 @@ from slowapi.util import get_remote_address
 
 from app.api.v1.router import router as v1_router
 from app.core.exceptions import AppError, app_error_handler
+from app.services.scheduler import shutdown_scheduler, start_scheduler
 
 limiter = Limiter(key_func=get_remote_address)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    yield
+    start_scheduler()
+    try:
+        yield
+    finally:
+        shutdown_scheduler()
 
 
 app = FastAPI(

@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     max_participations_per_export: int = 50_000
     api_version: str = "v1"
+    encryption_key: str = ""  # Fernet key voor Odoo API keys at rest
 
 
 settings = Settings()

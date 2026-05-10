@@ -1,12 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type { Organization, ApiToken, ApiTokenCreated } from "@/types/organization";
 import { formatDate } from "@/lib/utils";
 import { useState } from "react";
-import { KeyRound, Trash2, Copy, Check } from "lucide-react";
+import { Database, KeyRound, Trash2, Copy, Check } from "lucide-react";
 
 export default function OrgDetailPage() {
   const params = useParams<{ id: string }>();
@@ -58,6 +59,16 @@ export default function OrgDetailPage() {
         <Row label="E-mail" value={org.contact_email ?? "—"} />
         <Row label="Telefoon" value={org.contact_phone ?? "—"} />
         <Row label="Taalcode" value={org.language_code} />
+      </section>
+
+      <section>
+        <Link
+          href={`/organizations/${id}/odoo-connection`}
+          className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-900 text-sm font-medium px-4 py-2.5 rounded-lg"
+        >
+          <Database className="w-4 h-4 text-brand-600" />
+          Odoo Connectie beheren
+        </Link>
       </section>
 
       <section className="space-y-3">
