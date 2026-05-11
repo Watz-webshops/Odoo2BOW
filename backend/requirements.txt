@@ -30,3 +30,5 @@ python-dateutil
 slowapi
 
 email-validator
+
+apscheduler
