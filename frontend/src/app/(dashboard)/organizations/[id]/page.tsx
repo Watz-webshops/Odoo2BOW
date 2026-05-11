@@ -7,7 +7,8 @@ import { api } from "@/lib/api";
 import type { Organization, ApiToken, ApiTokenCreated } from "@/types/organization";
 import { formatDate } from "@/lib/utils";
 import { useState } from "react";
-import { Calendar, Database, KeyRound, ScrollText, Trash2, Copy, Check, Users } from "lucide-react";
+import { Calendar, Database, Eye, KeyRound, ScrollText, Trash2, Copy, Check, Users } from "lucide-react";
+import { BowFieldsEditor } from "@/components/BowFieldsEditor";
 
 export default function OrgDetailPage() {
   const params = useParams<{ id: string }>();
@@ -61,6 +62,8 @@ export default function OrgDetailPage() {
         <Row label="Taalcode" value={org.language_code} />
       </section>
 
+      <BowFieldsEditor org={org} onSaved={() => qc.invalidateQueries({ queryKey: ["organizations", id] })} />
+
       <section className="flex flex-wrap gap-2">
         <Link
           href={`/organizations/${id}/odoo-connection`}
@@ -89,6 +92,13 @@ export default function OrgDetailPage() {
         >
           <Users className="w-4 h-4 text-brand-600" />
           Begunstigden
+        </Link>
+        <Link
+          href={`/organizations/${id}/exports/preview`}
+          className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-900 text-sm font-medium px-4 py-2.5 rounded-lg"
+        >
+          <Eye className="w-4 h-4 text-brand-600" />
+          XML voorvertoning
         </Link>
       </section>
 

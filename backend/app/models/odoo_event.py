@@ -1,7 +1,7 @@
 import uuid
-from datetime import date, datetime
+from datetime import datetime
 
-from sqlalchemy import Date, DateTime, ForeignKey, Integer, String, UniqueConstraint, func
+from sqlalchemy import DateTime, ForeignKey, Integer, String, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -18,7 +18,8 @@ class OdooEvent(Base):
     )
     odoo_id: Mapped[int] = mapped_column(Integer, nullable=False)
     name: Mapped[str | None] = mapped_column(String(255))
-    date_begin: Mapped[date | None] = mapped_column(Date)
-    date_end: Mapped[date | None] = mapped_column(Date)
+    # Datetime (tijd-component nodig voor BOW halve-dag-classificatie: 1-4u = 0.5, 5-11u = 1.0)
+    date_begin: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    date_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     raw: Mapped[dict | None] = mapped_column(JSONB)
     synced_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

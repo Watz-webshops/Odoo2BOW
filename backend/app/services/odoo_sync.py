@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import asyncio
 import uuid
-from datetime import UTC, date, datetime
+from datetime import UTC, datetime
 from typing import Iterable
 
 from sqlalchemy import delete, select
@@ -33,14 +33,23 @@ async def _client_from_connection(conn: OdooConnection) -> OdooClient:
     )
 
 
-def _to_date(value) -> date | None:
+def _to_datetime(value) -> datetime | None:
+    """Parse Odoo datetime strings ('YYYY-MM-DD HH:MM:SS' of ISO) naar timezone-aware UTC datetime.
+
+    Odoo levert datetimes als naive strings in UTC. We interpreteren ze daarom als UTC.
+    Pure date-strings (YYYY-MM-DD) worden geïnterpreteerd als 00:00:00 UTC.
+    """
     if not value:
         return None
-    s = str(value)
+    s = str(value).strip().replace("T", " ")
     try:
-        return date.fromisoformat(s[:10])
+        if len(s) <= 10:
+            dt = datetime.strptime(s, "%Y-%m-%d")
+        else:
+            dt = datetime.strptime(s[:19], "%Y-%m-%d %H:%M:%S")
     except ValueError:
         return None
+    return dt.replace(tzinfo=UTC)
 
 
 # ── Upsert helpers ──────────────────────────────────────────────────────────
@@ -49,16 +58,16 @@ async def _upsert_event(db: AsyncSession, org_id: uuid.UUID, raw: dict) -> None:
         org_id=org_id,
         odoo_id=raw["id"],
         name=raw.get("name"),
-        date_begin=_to_date(raw.get("date_begin")),
-        date_end=_to_date(raw.get("date_end")),
+        date_begin=_to_datetime(raw.get("date_begin")),
+        date_end=_to_datetime(raw.get("date_end")),
         raw=raw,
         synced_at=datetime.now(UTC),
     ).on_conflict_do_update(
         constraint="uq_odoo_events_org_odoo",
         set_={
             "name": raw.get("name"),
-            "date_begin": _to_date(raw.get("date_begin")),
-            "date_end": _to_date(raw.get("date_end")),
+            "date_begin": _to_datetime(raw.get("date_begin")),
+            "date_end": _to_datetime(raw.get("date_end")),
             "raw": raw,
             "synced_at": datetime.now(UTC),
         },

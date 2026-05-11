@@ -1,7 +1,7 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import DateTime, Integer, String, func
+from sqlalchemy import Date, DateTime, Integer, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -22,6 +22,16 @@ class Organization(Base):
     contact_name: Mapped[str | None] = mapped_column(String(255))
     contact_email: Mapped[str | None] = mapped_column(String(255))
     contact_phone: Mapped[str | None] = mapped_column(String(50))
+    # Anderstalige benamingen voor BOW aangifte (optioneel)
+    name_fr: Mapped[str | None] = mapped_column(String(255))
+    street_fr: Mapped[str | None] = mapped_column(String(255))
+    city_fr: Mapped[str | None] = mapped_column(String(100))
+    name_de: Mapped[str | None] = mapped_column(String(255))
+    street_de: Mapped[str | None] = mapped_column(String(255))
+    city_de: Mapped[str | None] = mapped_column(String(100))
+    # Certificeringsgeldigheid — wanneer ingevuld worden f86_2164/2171 op alle fiches geschreven
+    cert_validity_start: Mapped[date | None] = mapped_column(Date)
+    cert_validity_end: Mapped[date | None] = mapped_column(Date)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     tokens: Mapped[list["ApiToken"]] = relationship("ApiToken", back_populates="organization", lazy="select")

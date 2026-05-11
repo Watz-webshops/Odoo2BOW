@@ -5,7 +5,7 @@ Gedeeld tussen /me/* (user) en /organizations/{org_id}/* (admin) endpoints.
 from __future__ import annotations
 
 import uuid
-from datetime import date
+from datetime import datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -34,8 +34,8 @@ async def list_events(db: AsyncSession, org_id: uuid.UUID) -> list[dict]:
             "id": str(e.id),
             "odoo_id": e.odoo_id,
             "name": e.name,
-            "date_begin": e.date_begin.isoformat() if e.date_begin else None,
-            "date_end": e.date_end.isoformat() if e.date_end else None,
+            "date_begin": e.date_begin.date().isoformat() if e.date_begin else None,
+            "date_end": e.date_end.date().isoformat() if e.date_end else None,
             "registration_count": counts.get(e.odoo_id, 0),
             "synced_at": e.synced_at.isoformat() if e.synced_at else None,
         }
@@ -63,9 +63,10 @@ async def list_participations(
         .limit(500)
     )
     if income_year:
+        # Inkomstenjaar = jaar waarin de laatste dag van het event valt.
         stmt = stmt.where(
-            OdooEvent.date_begin >= date(income_year, 1, 1),
-            OdooEvent.date_begin <= date(income_year, 12, 31),
+            OdooEvent.date_end >= datetime(income_year, 1, 1),
+            OdooEvent.date_end <= datetime(income_year, 12, 31, 23, 59, 59),
         )
     if parent_rrn:
         stmt = stmt.where(OdooRegistration.parent_rrn == parent_rrn)
@@ -81,8 +82,8 @@ async def list_participations(
             "odoo_id": reg.odoo_id,
             "event_odoo_id": reg.event_odoo_id,
             "event_name": event.name,
-            "start_date": event.date_begin.isoformat() if event.date_begin else None,
-            "end_date": event.date_end.isoformat() if event.date_end else None,
+            "start_date": event.date_begin.date().isoformat() if event.date_begin else None,
+            "end_date": event.date_end.date().isoformat() if event.date_end else None,
             "state": reg.state,
             "amount_paid_cents": reg.ticket_price_cents or 0,
             "parent_rrn": reg.parent_rrn,

@@ -17,6 +17,12 @@ class ContactSchema(BaseModel):
     phone: str
 
 
+class MultilingualNameSchema(BaseModel):
+    name: str
+    street: str
+    city: str
+
+
 class OrganizationPayload(BaseModel):
     organization_id: str | None = None
     kbo: str
@@ -24,6 +30,12 @@ class OrganizationPayload(BaseModel):
     address: AddressSchema
     language_code: int = 1
     contact: ContactSchema
+    # Optionele anderstalige benamingen (a1027/a1029/a1030/a1031 + a1032/a1034/a1035/a1036)
+    name_fr: MultilingualNameSchema | None = None
+    name_de: MultilingualNameSchema | None = None
+    # Optionele certificeringsgeldigheid (f86_2164/2171) — per fiche identiek
+    cert_validity_start: date | None = None
+    cert_validity_end: date | None = None
 
 
 class ParentSchema(BaseModel):
@@ -50,6 +62,11 @@ class ParticipationSchema(BaseModel):
     status: str
     parent: ParentSchema
     child: ChildSchema
+    # Optionele BOW halve-dag teller — 1 halve dag = 1, 1 volle dag = 2.
+    # Wanneer gezet, gebruikt aggregate() dit i.p.v. `days * 2`.
+    half_days: int | None = Field(default=None, ge=0)
+    # Optionele totaal-uren (informatief, voor preview-weergave).
+    hours_total: float | None = Field(default=None, ge=0)
 
     @field_validator("end_date")
     @classmethod

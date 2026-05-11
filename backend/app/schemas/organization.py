@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel, EmailStr
 
@@ -15,6 +15,14 @@ class OrganizationCreate(BaseModel):
     contact_name: str | None = None
     contact_email: EmailStr | None = None
     contact_phone: str | None = None
+    name_fr: str | None = None
+    street_fr: str | None = None
+    city_fr: str | None = None
+    name_de: str | None = None
+    street_de: str | None = None
+    city_de: str | None = None
+    cert_validity_start: date | None = None
+    cert_validity_end: date | None = None
 
 
 class OrganizationUpdate(BaseModel):
@@ -27,6 +35,14 @@ class OrganizationUpdate(BaseModel):
     contact_name: str | None = None
     contact_email: EmailStr | None = None
     contact_phone: str | None = None
+    name_fr: str | None = None
+    street_fr: str | None = None
+    city_fr: str | None = None
+    name_de: str | None = None
+    street_de: str | None = None
+    city_de: str | None = None
+    cert_validity_start: date | None = None
+    cert_validity_end: date | None = None
 
 
 class OrganizationResponse(BaseModel):
@@ -41,6 +57,14 @@ class OrganizationResponse(BaseModel):
     contact_name: str | None
     contact_email: str | None
     contact_phone: str | None
+    name_fr: str | None
+    street_fr: str | None
+    city_fr: str | None
+    name_de: str | None
+    street_de: str | None
+    city_de: str | None
+    cert_validity_start: date | None
+    cert_validity_end: date | None
     created_at: datetime
 
     model_config = {"from_attributes": True}

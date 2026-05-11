@@ -7,7 +7,7 @@ Structuur:
       v0002..v0028 (verzender/organisatie header)
       Aangiften
         Aangifte
-          a1002..a1036 (aangever header)
+          a1002..a1036 (aangever header, optioneel meertalig)
           Opgaven
             Opgave32586
               Fiche28186 × N
@@ -22,7 +22,7 @@ from datetime import date, datetime, UTC
 from lxml import etree
 
 from app.schemas.export import OrganizationPayload
-from app.services.aggregation import Fiche28186Data
+from app.services.aggregation import Fiche28186Data, PeriodData
 
 
 def _fmt(d: date) -> str:
@@ -34,6 +34,23 @@ def _sub(parent: etree._Element, tag: str, text: str | int | None = None) -> etr
     if text is not None:
         el.text = str(text)
     return el
+
+
+def _fiche_totaalcontrole(fiche: Fiche28186Data) -> int:
+    """f86_2059 = som van amount1 + (amount2 of 0) + totalamount."""
+    total = fiche.total_amount_cents
+    amount1 = fiche.period1.amount_cents
+    amount2 = fiche.period2.amount_cents if fiche.period2 else 0
+    return amount1 + amount2 + total
+
+
+def _write_period(f: etree._Element, period: PeriodData, *, is_second: bool) -> None:
+    if not is_second:
+        _sub(f, "f86_2055_begindate1", _fmt(period.start))
+        _sub(f, "f86_2056_enddate1", _fmt(period.end))
+    else:
+        _sub(f, "f86_2093_begindate2", _fmt(period.start))
+        _sub(f, "f86_2144_enddate2", _fmt(period.end))
 
 
 def generate_bow_xml(
@@ -50,9 +67,9 @@ def generate_bow_xml(
     today = datetime.now(UTC).strftime("%d-%m-%Y")
     n_fiches = len(fiches)
 
-    # Controletotalen per fiche: totaalcontrole = amount1 + totalamount (= 2 × totalamount)
-    fiche_ctrl = [2 * f.total_amount_cents for f in fiches]
-    sum_ctrl = sum(fiche_ctrl)
+    # Controletotaal per fiche (= som van alle amount-velden in fiche)
+    fiche_ctrls = [_fiche_totaalcontrole(f) for f in fiches]
+    sum_ctrl = sum(fiche_ctrls)
     sum_volgnr = sum(i + 1 for i in range(n_fiches))  # 1+2+...+n
 
     # r8010: 1 aangifte-header + n fiches + 1 trailer = n+2
@@ -92,12 +109,23 @@ def generate_bow_xml(
     _sub(aangifte, "a1016_landwoonplaats", organization.address.country_code)
     _sub(aangifte, "a1020_taalcode", organization.language_code)
 
+    # Optionele anderstalige aangever-blokken
+    if organization.name_fr:
+        _sub(aangifte, "a1027_naamfr1", organization.name_fr.name)
+        _sub(aangifte, "a1029_adresfr", organization.name_fr.street)
+        _sub(aangifte, "a1030_gemeentefr", organization.name_fr.city)
+        _sub(aangifte, "a1031_taalfr", 2)
+    if organization.name_de:
+        _sub(aangifte, "a1032_naamde1", organization.name_de.name)
+        _sub(aangifte, "a1034_adresde", organization.name_de.street)
+        _sub(aangifte, "a1035_gemeentede", organization.name_de.city)
+        _sub(aangifte, "a1036_taalde", 3)
+
     # ── Opgaven → Opgave32586 → Fiches ───────────────────────────────────────
     opgaven = etree.SubElement(aangifte, "Opgaven")
     opgave = etree.SubElement(opgaven, "Opgave32586")
 
-    for seq, (fiche, ctrl) in enumerate(zip(fiches, fiche_ctrl), start=1):
-        daily_tariff = round(fiche.total_amount_cents / fiche.total_days) if fiche.total_days else 0
+    for seq, (fiche, ctrl) in enumerate(zip(fiches, fiche_ctrls), start=1):
         ref = f"{export_ref}-{seq}" if export_ref else str(seq)
 
         f = etree.SubElement(opgave, "Fiche28186")
@@ -124,12 +152,15 @@ def generate_bow_xml(
         # ── f86-velden (kinderopvang) ─────────────────────────────────────────
         _sub(f, "f86_2031_certificationautorisation", 1)
 
-        # Periode 1 (= geaggregeerde periode van alle deelnames)
-        _sub(f, "f86_2055_begindate1", _fmt(fiche.period_start))
-        _sub(f, "f86_2056_enddate1", _fmt(fiche.period_end))
+        # Periode 1 (verplicht)
+        _write_period(f, fiche.period1, is_second=False)
         _sub(f, "f86_2059_totaalcontrole", ctrl)
-        _sub(f, "f86_2060_amount1", fiche.total_amount_cents)
+        _sub(f, "f86_2060_amount1", fiche.period1.amount_cents)
+        if fiche.period2:
+            _sub(f, "f86_2061_amount2", fiche.period2.amount_cents)
         _sub(f, "f86_2064_totalamount", fiche.total_amount_cents)
+        if fiche.period2:
+            _write_period(f, fiche.period2, is_second=True)
 
         # Certifier (= de organisatie zelf)
         _sub(f, "f86_2100_certifierpostnr", organization.address.zip)
@@ -138,8 +169,11 @@ def generate_bow_xml(
         _sub(f, "f86_2106_childname", fiche.child_last_name)
         _sub(f, "f86_2107_childfirstname", fiche.child_first_name)
         _sub(f, "f86_2109_certifiercbenumber", organization.kbo)
-        _sub(f, "f86_2110_numberofday1", fiche.total_days)
-        _sub(f, "f86_2111_dailytariff1", daily_tariff)
+        _sub(f, "f86_2110_numberofday1", fiche.period1.xml_days)
+        _sub(f, "f86_2111_dailytariff1", fiche.period1.daily_tariff_cents)
+        if fiche.period2:
+            _sub(f, "f86_2113_numberofday2", fiche.period2.xml_days)
+            _sub(f, "f86_2115_dailytariff2", fiche.period2.daily_tariff_cents)
         _sub(f, "f86_2139_childpostnr", fiche.child_address.zip)
         _sub(f, "f86_2140_childmunicipality", fiche.child_address.city)
         _sub(f, "f86_2153_nnchild", fiche.child_rrn)
@@ -147,6 +181,12 @@ def generate_bow_xml(
         _sub(f, "f86_2155_certifiername", organization.name)
         _sub(f, "f86_2156_certifieradres", organization.address.street)
         _sub(f, "f86_2163_childbirthdate", fiche.child_birth_date_formatted)
+
+        # Certificeringsgeldigheid (optioneel, per organisatie ingesteld)
+        if organization.cert_validity_start:
+            _sub(f, "f86_2164_beginvaliditycertification", _fmt(organization.cert_validity_start))
+        if organization.cert_validity_end:
+            _sub(f, "f86_2171_endvaliditycertification", _fmt(organization.cert_validity_end))
 
     # ── Aangifte trailer (r8) ─────────────────────────────────────────────────
     _sub(aangifte, "r8002_inkomstenjaar", income_year)

@@ -6,6 +6,7 @@ import {
   Building2,
   Calendar,
   Database,
+  Eye,
   FileText,
   KeyRound,
   LayoutDashboard,
@@ -36,6 +37,7 @@ const USER_NAV = [
   { href: "/me/events", label: "Events", icon: Calendar },
   { href: "/me/participations", label: "Deelnames", icon: ScrollText },
   { href: "/me/beneficiaries", label: "Begunstigden", icon: Users },
+  { href: "/me/exports/preview", label: "XML voorvertoning", icon: Eye },
   { href: "/me/exports", label: "Exports", icon: FileText },
   { href: "/me/api-tokens", label: "API Tokens", icon: KeyRound },
   { href: "/me/profile", label: "Profiel", icon: UserIcon },
@@ -61,21 +63,28 @@ export function Sidebar({ role }: { role: Role }) {
       </div>
 
       <nav className="flex-1 py-4 space-y-1 px-2">
-        {nav.map(({ href, label, icon: Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            className={cn(
-              "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-              pathname === href || pathname.startsWith(href + "/")
-                ? "bg-brand-50 text-brand-700"
-                : "text-gray-600 hover:bg-gray-100"
-            )}
-          >
-            <Icon className="w-4 h-4" />
-            {label}
-          </Link>
-        ))}
+        {nav.map(({ href, label, icon: Icon }) => {
+          // Een item is actief als: exact match, OF (prefix-match en geen specifiekere nav-route matcht).
+          const exact = pathname === href;
+          const prefix = pathname.startsWith(href + "/");
+          const moreSpecific = !exact && nav.some(
+            (n) => n.href !== href && n.href.startsWith(href + "/") && (pathname === n.href || pathname.startsWith(n.href + "/"))
+          );
+          const active = exact || (prefix && !moreSpecific);
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={cn(
+                "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                active ? "bg-brand-50 text-brand-700" : "text-gray-600 hover:bg-gray-100"
+              )}
+            >
+              <Icon className="w-4 h-4" />
+              {label}
+            </Link>
+          );
+        })}
       </nav>
 
       <div className="px-2 pb-4">

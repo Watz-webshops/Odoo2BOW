@@ -8,6 +8,7 @@ from app.api.deps import get_current_user
 from app.database import get_db
 from app.models.user import User
 from app.schemas.export import ExportCreatedResponse
+from app.schemas.export_preview import ExportPreviewResponse
 from app.schemas.odoo import (
     ExportFromLocalRequest,
     OdooConnectionResponse,
@@ -17,6 +18,7 @@ from app.schemas.odoo import (
     SyncStatus,
 )
 from app.services import odoo_connection_service as svc
+from app.services.export_preview import preview_export
 
 router = APIRouter()
 
@@ -82,3 +84,13 @@ async def create_export_from_local(
     db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user),
 ):
     return await svc.start_export_from_local(db, user.org_id, body.income_year, user, background_tasks)
+
+
+@router.get("/me/exports/preview", response_model=ExportPreviewResponse)
+async def my_export_preview(
+    income_year: int,
+    test_mode: bool = False,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    return await preview_export(db, user.org_id, income_year, test_mode=test_mode)

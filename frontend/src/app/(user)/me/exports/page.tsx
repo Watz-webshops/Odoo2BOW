@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Zap } from "lucide-react";
+import { Eye, Zap } from "lucide-react";
 import { api } from "@/lib/api";
 import { centsToEur } from "@/lib/utils";
 import { cn } from "@/lib/utils";
@@ -50,11 +50,20 @@ export default function MyExportsPage() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-gray-900">Mijn exports</h1>
-        <button onClick={() => setShowModal(true)}
-          className="inline-flex items-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-3 py-2 rounded-lg">
-          <Zap className="w-4 h-4" />
-          Genereer XML uit Odoo data
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/me/exports/preview"
+            className="inline-flex items-center gap-1.5 bg-white hover:bg-gray-50 border border-gray-200 text-gray-900 text-sm font-medium px-3 py-2 rounded-lg"
+          >
+            <Eye className="w-4 h-4 text-brand-600" />
+            Voorvertonen
+          </Link>
+          <button onClick={() => setShowModal(true)}
+            className="inline-flex items-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-3 py-2 rounded-lg">
+            <Zap className="w-4 h-4" />
+            Genereer XML uit Odoo data
+          </button>
+        </div>
       </div>
 
       <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm text-blue-800">

@@ -11,6 +11,7 @@ from app.database import get_db
 from app.models.admin_user import AdminUser
 from app.models.organization import Organization
 from app.schemas.export import ExportCreatedResponse
+from app.schemas.export_preview import ExportPreviewResponse
 from app.schemas.odoo import (
     ExportFromLocalRequest,
     OdooConnectionResponse,
@@ -21,6 +22,7 @@ from app.schemas.odoo import (
 )
 from app.services import odoo_connection_service as svc
 from app.services import odoo_data_query as data_q
+from app.services.export_preview import preview_export
 
 router = APIRouter()
 
@@ -123,6 +125,21 @@ async def admin_export_from_local(
 ):
     await _ensure_org(db, org_id)
     return await svc.start_export_from_local(db, org_id, body.income_year, admin, background_tasks)
+
+
+@router.get(
+    "/organizations/{org_id}/exports/preview",
+    response_model=ExportPreviewResponse,
+)
+async def admin_export_preview(
+    org_id: uuid.UUID,
+    income_year: int,
+    test_mode: bool = False,
+    db: AsyncSession = Depends(get_db),
+    _: AdminUser = Depends(get_current_admin),
+):
+    await _ensure_org(db, org_id)
+    return await preview_export(db, org_id, income_year, test_mode=test_mode)
 
 
 # ── Read-only Odoo data per organisatie (admin) ────────────────────────────

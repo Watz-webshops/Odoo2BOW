@@ -10,6 +10,14 @@ export interface Organization {
   contact_name: string | null;
   contact_email: string | null;
   contact_phone: string | null;
+  name_fr: string | null;
+  street_fr: string | null;
+  city_fr: string | null;
+  name_de: string | null;
+  street_de: string | null;
+  city_de: string | null;
+  cert_validity_start: string | null;
+  cert_validity_end: string | null;
   created_at: string;
 }
 
@@ -24,7 +32,19 @@ export interface OrganizationCreate {
   contact_name?: string;
   contact_email?: string;
   contact_phone?: string;
+  name_fr?: string | null;
+  street_fr?: string | null;
+  city_fr?: string | null;
+  name_de?: string | null;
+  street_de?: string | null;
+  city_de?: string | null;
+  cert_validity_start?: string | null;
+  cert_validity_end?: string | null;
 }
+
+export type OrganizationUpdate = Partial<OrganizationCreate> & {
+  name?: string;
+};
 
 export interface ApiToken {
   id: string;

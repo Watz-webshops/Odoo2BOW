@@ -25,11 +25,13 @@ from app.schemas.export import (
     ContactSchema,
     ExportSummary,
     ExportSummaryWarning,
+    MultilingualNameSchema,
     OrganizationPayload,
     ParentSchema,
     ParticipationSchema,
 )
 from app.services.aggregation import aggregate
+from app.services.day_classifier import classify_event
 from app.services.rrn_validator import validate_rrn
 from app.services.xml_generator import generate_bow_xml
 from app.services.xsd_validator import validate_xml
@@ -38,10 +40,14 @@ from app.services.xsd_validator import validate_xml
 async def _build_request_from_local(
     db: AsyncSession, org: Organization, income_year: int,
 ) -> BelcotaxRequest:
-    """Bouw BelcotaxRequest uit lokale tabellen voor een specifiek jaar."""
-    # Pak registraties + events binnen het jaar (state='open')
-    year_start = date(income_year, 1, 1)
-    year_end = date(income_year, 12, 31)
+    """Bouw BelcotaxRequest uit lokale tabellen voor een specifiek jaar.
+
+    Inkomstenjaar = het jaar waarin de LAATSTE dag van het event valt. Daarom
+    filteren we op `OdooEvent.date_end` — een kamp 28/12/2021 → 05/01/2022 hoort
+    bij inkomstenjaar 2022.
+    """
+    year_start = datetime(income_year, 1, 1)
+    year_end = datetime(income_year, 12, 31, 23, 59, 59)
 
     stmt = (
         select(OdooRegistration, OdooEvent, OdooPartner)
@@ -54,8 +60,8 @@ async def _build_request_from_local(
         .where(
             OdooRegistration.org_id == org.id,
             OdooRegistration.state == "open",
-            OdooEvent.date_begin >= year_start,
-            OdooEvent.date_begin <= year_end,
+            OdooEvent.date_end >= year_start,
+            OdooEvent.date_end <= year_end,
         )
     )
     result = await db.execute(stmt)
@@ -65,7 +71,26 @@ async def _build_request_from_local(
     for reg, event, partner in rows:
         if not reg.child_rrn or not reg.parent_rrn:
             continue  # skip — vereist RRN's
-        days = (event.date_end - event.date_begin).days + 1 if event.date_begin and event.date_end else 1
+
+        # Uren-classificatie via BOW halve-dag regel.
+        classification = classify_event(event.date_begin, event.date_end)
+        if classification is None:
+            # Onbruikbare datetimes — registreer de registratie wel met 1 dag/2 halve dagen
+            # zodat de aggregatie hem niet stilletjes overslaat; aggregate() voegt een warning toe.
+            start_date = event.date_begin.date() if event.date_begin else None
+            end_date = event.date_end.date() if event.date_end else start_date
+            if not start_date or not end_date:
+                continue
+            days = (end_date - start_date).days + 1
+            half_days = days * 2
+            hours_total: float | None = None
+        else:
+            start_date = event.date_begin.date()
+            end_date = event.date_end.date()
+            days = classification.days_in_range
+            half_days = classification.half_days
+            hours_total = classification.total_hours
+
         amount_paid = (reg.ticket_price_cents or 0) / 100.0
 
         # Splits parent name in voornaam/achternaam
@@ -77,11 +102,13 @@ async def _build_request_from_local(
         participations.append(ParticipationSchema(
             event_id=str(event.odoo_id),
             event_name=event.name or "",
-            start_date=event.date_begin,
-            end_date=event.date_end,
-            days=days,
+            start_date=start_date,
+            end_date=end_date,
+            days=max(days, 1),
             amount_paid=amount_paid,
             status="confirmed",
+            half_days=half_days,
+            hours_total=hours_total,
             parent=ParentSchema(
                 rrn=reg.parent_rrn,
                 first_name=parent_first,
@@ -105,23 +132,38 @@ async def _build_request_from_local(
 
     return BelcotaxRequest(
         income_year=income_year,
-        organization=OrganizationPayload(
-            kbo=org.kbo,
-            name=org.name,
-            address=AddressSchema(
-                street=org.street or "",
-                zip=org.zip or "",
-                city=org.city or "",
-                country_code=org.country_code,
-            ),
-            language_code=org.language_code,
-            contact=ContactSchema(
-                name=org.contact_name or org.name,
-                email=org.contact_email or "",
-                phone=org.contact_phone or "",
-            ),
-        ),
+        organization=_build_org_payload(org),
         participations=participations,
+    )
+
+
+def _build_org_payload(org: Organization) -> OrganizationPayload:
+    """Bouw OrganizationPayload uit Organization DB-model, inclusief optionele FR/DE namen + cert-validity."""
+    name_fr = None
+    if org.name_fr and org.street_fr and org.city_fr:
+        name_fr = MultilingualNameSchema(name=org.name_fr, street=org.street_fr, city=org.city_fr)
+    name_de = None
+    if org.name_de and org.street_de and org.city_de:
+        name_de = MultilingualNameSchema(name=org.name_de, street=org.street_de, city=org.city_de)
+    return OrganizationPayload(
+        kbo=org.kbo,
+        name=org.name,
+        address=AddressSchema(
+            street=org.street or "",
+            zip=org.zip or "",
+            city=org.city or "",
+            country_code=org.country_code,
+        ),
+        language_code=org.language_code,
+        contact=ContactSchema(
+            name=org.contact_name or org.name,
+            email=org.contact_email or "",
+            phone=org.contact_phone or "",
+        ),
+        name_fr=name_fr,
+        name_de=name_de,
+        cert_validity_start=org.cert_validity_start,
+        cert_validity_end=org.cert_validity_end,
     )
 
 
