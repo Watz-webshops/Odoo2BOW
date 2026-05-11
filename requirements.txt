@@ -1,0 +1,29 @@
+# --- FastAPI & server ---
+fastapi
+uvicorn[standard]
+
+# --- Database ---
+SQLAlchemy>=2.0
+asyncpg
+alembic
+
+# --- Config & env ---
+python-dotenv
+pydantic
+pydantic-settings
+
+# --- Auth & security ---
+python-jose[cryptography]
+passlib[bcrypt]
+
+# --- HTTP & async ---
+httpx
+anyio
+
+# --- XML generatie & validatie ---
+lxml
+xmlschema
+
+# --- Utilities ---
+python-dateutil
+``
