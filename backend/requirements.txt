@@ -26,3 +26,5 @@ xmlschema
 
 # --- Utilities ---
 python-dateutil
+
+slowapi
