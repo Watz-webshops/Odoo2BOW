@@ -1,4 +1,4 @@
-import { getAccessToken } from "./auth";
+import { clearSession, getAccessToken } from "./auth";
 
 export type LoginResponse = {
   access_token: string;
@@ -26,6 +26,14 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
   const res = await fetch(`${BASE}${path}`, { ...init, headers });
+  if (res.status === 401 && !path.startsWith("/auth/")) {
+    // Token verlopen of ongeldig: ruim sessie op en stuur naar login.
+    clearSession();
+    if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+      window.location.href = "/login";
+    }
+    throw new ApiError(401, null);
+  }
   if (!res.ok) {
     const body = await res.json().catch(() => null);
     throw new ApiError(res.status, body);
