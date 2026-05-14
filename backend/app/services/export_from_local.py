@@ -30,6 +30,7 @@ from app.schemas.export import (
     ParentSchema,
     ParticipationSchema,
 )
+from app.schemas.export_preview import InvalidRegistration
 from app.services.aggregation import aggregate
 from app.services.day_classifier import classify_event
 from app.services.rrn_validator import validate_rrn
@@ -135,6 +136,81 @@ async def _build_request_from_local(
         organization=_build_org_payload(org),
         participations=participations,
     )
+
+
+def invalid_reasons_for_row(
+    parent_rrn: str | None,
+    child_rrn: str | None,
+    event_date_begin: datetime | None,
+    event_date_end: datetime | None,
+) -> list[str]:
+    """Pure reden-detectie voor één registratie/event-paar (XML-blokkers)."""
+    reasons: list[str] = []
+    if not parent_rrn:
+        reasons.append("RRN ouder ontbreekt")
+    elif not validate_rrn(parent_rrn).is_valid:
+        reasons.append("RRN ouder ongeldig")
+    if not child_rrn:
+        reasons.append("RRN kind ontbreekt")
+    elif not validate_rrn(child_rrn).is_valid:
+        reasons.append("RRN kind ongeldig")
+    if not event_date_begin or not event_date_end:
+        reasons.append("Begin- of einddatum event ontbreekt")
+    return reasons
+
+
+async def list_invalid_registrations(
+    db: AsyncSession, org: Organization, income_year: int,
+) -> list[InvalidRegistration]:
+    """Geeft per inschrijving die NIET in de XML zal komen de redenen waarom.
+
+    Gebruikt dezelfde filters als `_build_request_from_local` (state == 'open',
+    event.date_end in income_year) maar valt niet weg op missende RRN's / datums —
+    in plaats daarvan worden die als reden toegevoegd.
+    """
+    year_start = datetime(income_year, 1, 1)
+    year_end = datetime(income_year, 12, 31, 23, 59, 59)
+
+    stmt = (
+        select(OdooRegistration, OdooEvent, OdooPartner)
+        .join(OdooEvent,
+              (OdooEvent.org_id == OdooRegistration.org_id)
+              & (OdooEvent.odoo_id == OdooRegistration.event_odoo_id))
+        .join(OdooPartner,
+              (OdooPartner.org_id == OdooRegistration.org_id)
+              & (OdooPartner.odoo_id == OdooRegistration.partner_odoo_id))
+        .where(
+            OdooRegistration.org_id == org.id,
+            OdooRegistration.state == "open",
+            OdooEvent.date_end >= year_start,
+            OdooEvent.date_end <= year_end,
+        )
+    )
+    result = await db.execute(stmt)
+    rows = result.all()
+
+    invalid: list[InvalidRegistration] = []
+    for reg, event, partner in rows:
+        reasons = invalid_reasons_for_row(
+            reg.parent_rrn, reg.child_rrn, event.date_begin, event.date_end,
+        )
+        if not reasons:
+            continue
+
+        invalid.append(InvalidRegistration(
+            registration_odoo_id=reg.odoo_id,
+            event_name=event.name or "",
+            event_date_begin=event.date_begin.strftime("%d-%m-%Y") if event.date_begin else None,
+            event_date_end=event.date_end.strftime("%d-%m-%Y") if event.date_end else None,
+            partner_name=partner.name or "",
+            parent_rrn=reg.parent_rrn,
+            child_first_name=reg.child_first_name,
+            child_last_name=reg.child_last_name,
+            child_rrn=reg.child_rrn,
+            reasons=reasons,
+        ))
+
+    return invalid
 
 
 def _build_org_payload(org: Organization) -> OrganizationPayload:

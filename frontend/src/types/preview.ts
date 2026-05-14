@@ -88,6 +88,19 @@ export interface PreviewSummaryWarning {
   message: string;
 }
 
+export interface InvalidRegistration {
+  registration_odoo_id: number;
+  event_name: string;
+  event_date_begin: string | null;
+  event_date_end: string | null;
+  partner_name: string;
+  parent_rrn: string | null;
+  child_first_name: string | null;
+  child_last_name: string | null;
+  child_rrn: string | null;
+  reasons: string[];
+}
+
 export interface PreviewSummary {
   fiche_count: number;
   total_amount_cents: number;
@@ -96,6 +109,7 @@ export interface PreviewSummary {
   warnings: PreviewSummaryWarning[];
   errors: string[];
   organization_missing: string[];
+  invalid_registrations: InvalidRegistration[];
 }
 
 export interface ExportPreview {

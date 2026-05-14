@@ -142,6 +142,29 @@ function SummaryCard({ preview }: { preview: ExportPreview }) {
           </ul>
         </div>
       )}
+      {s.invalid_registrations.length > 0 && (
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 space-y-2">
+          <div className="flex items-center gap-2 text-sm font-medium text-orange-900">
+            <FileWarning className="w-4 h-4" />
+            {s.invalid_registrations.length} ongeldige inschrijving
+            {s.invalid_registrations.length === 1 ? "" : "en"} — corrigeer in Odoo
+          </div>
+          <ul className="text-xs text-orange-900 space-y-1.5">
+            {s.invalid_registrations.map((r) => {
+              const childName = [r.child_first_name, r.child_last_name].filter(Boolean).join(" ");
+              return (
+                <li key={r.registration_odoo_id} className="border-l-2 border-orange-300 pl-2">
+                  <div className="font-medium">
+                    {r.event_name || "(zonder naam)"} · {r.partner_name || "(zonder ouder)"}
+                    {childName ? ` · kind ${childName}` : ""}
+                  </div>
+                  <div className="text-orange-700">{r.reasons.join(" · ")}</div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
       {s.warnings.length > 0 && (
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
           <div className="flex items-center gap-2 text-sm font-medium text-amber-800 mb-1">

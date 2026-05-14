@@ -98,6 +98,20 @@ class TrailerPreview(BaseModel):
     r9013_controletotaal: int
 
 
+class InvalidRegistration(BaseModel):
+    """Eén inschrijving die niet in de XML komt, met de redenen waarom."""
+    registration_odoo_id: int
+    event_name: str
+    event_date_begin: str | None = None   # DD-MM-YYYY
+    event_date_end: str | None = None
+    partner_name: str
+    parent_rrn: str | None = None         # raw waarde — kan ongeldig zijn
+    child_first_name: str | None = None
+    child_last_name: str | None = None
+    child_rrn: str | None = None
+    reasons: list[str]                    # NL strings, zie reden-taxonomie
+
+
 class PreviewSummary(BaseModel):
     fiche_count: int
     total_amount_cents: int
@@ -106,6 +120,7 @@ class PreviewSummary(BaseModel):
     warnings: list[dict] = []
     errors: list[str] = []
     organization_missing: list[str] = []   # bv. ["name_fr", "cert_validity_start"]
+    invalid_registrations: list[InvalidRegistration] = []
 
 
 class ExportPreviewResponse(BaseModel):

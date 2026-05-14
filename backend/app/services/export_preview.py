@@ -23,7 +23,7 @@ from app.schemas.export_preview import (
     VerzendingHeaderPreview,
 )
 from app.services.aggregation import Fiche28186Data, PeriodData, aggregate
-from app.services.export_from_local import _build_request_from_local
+from app.services.export_from_local import _build_request_from_local, list_invalid_registrations
 from app.services.rrn_validator import validate_rrn
 
 
@@ -129,11 +129,13 @@ async def preview_export(
     if not org:
         raise HTTPException(status_code=404, detail="Organisatie niet gevonden")
 
+    invalid_regs = await list_invalid_registrations(db, org, income_year)
+
     try:
         request = await _build_request_from_local(db, org, income_year)
     except ValueError as exc:
         # Geen geldige inschrijvingen — geef lege preview terug met error.
-        return _empty_preview(income_year, org, test_mode, str(exc))
+        return _empty_preview(income_year, org, test_mode, str(exc), invalid_regs)
 
     # Valideer RRNs + bereken birth_dates (zelfde flow als echte export)
     errors: list[str] = []
@@ -234,6 +236,7 @@ async def preview_export(
         warnings=result.warnings,
         errors=errors,
         organization_missing=_org_missing_for_preview(org),
+        invalid_registrations=invalid_regs,
     )
 
     return ExportPreviewResponse(
@@ -249,6 +252,7 @@ async def preview_export(
 
 def _empty_preview(
     income_year: int, org: Organization, test_mode: bool, error_msg: str,
+    invalid_regs: list,
 ) -> ExportPreviewResponse:
     today = datetime.now(UTC).strftime("%d-%m-%Y")
     return ExportPreviewResponse(
@@ -293,5 +297,6 @@ def _empty_preview(
             fiche_count=0, total_amount_cents=0, total_xml_days=0,
             skipped_count=0, warnings=[], errors=[error_msg],
             organization_missing=_org_missing_for_preview(org),
+            invalid_registrations=invalid_regs,
         ),
     )
