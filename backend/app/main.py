@@ -70,12 +70,46 @@ if _next_dir.exists():
     app.mount("/_next", StaticFiles(directory=str(_next_dir)), name="next-static")
 
 
+def _resolve_static_html(parts: list[str]) -> Path | None:
+    """Resolve een request-pad naar een statisch HTML-bestand.
+
+    Ondersteunt Next.js dynamische routes (`[id]`) die als `_` zijn geëxporteerd.
+    Wandelt segment-voor-segment door static_dir, en probeert per tussensegment
+    eerst letterlijk en dan `_` als alternatief.
+    """
+    if not parts:
+        return None
+
+    current = static_dir
+    for part in parts[:-1]:
+        literal = current / part
+        if literal.is_dir():
+            current = literal
+            continue
+        placeholder = current / "_"
+        if placeholder.is_dir():
+            current = placeholder
+            continue
+        return None
+
+    last = parts[-1]
+    for candidate in (
+        current / f"{last}.html",
+        current / "_.html",
+        current / last / "index.html",
+    ):
+        if candidate.is_file():
+            return candidate
+    return None
+
+
 @app.get("/{full_path:path}", include_in_schema=False)
 async def spa(full_path: str):
     """
-    Catch-all voor frontend:
+    Catch-all voor frontend (Next.js statische export):
     - /api/* en /docs/* worden expliciet uitgesloten (vallen door naar 404).
     - Bestaande bestanden in static/ (bv. /favicon.ico, /robots.txt) worden direct geserveerd.
+    - Dynamische routes (`[id]`) worden geresolved via `_` placeholders.
     - Anders: index.html teruggeven zodat client-side router de route oplost.
     """
     if full_path.startswith("api/") or full_path in ("docs", "redoc", "openapi.json"):
@@ -83,13 +117,13 @@ async def spa(full_path: str):
 
     if full_path:
         candidate = static_dir / full_path
-        # Statische export bouwt routes als `dashboard.html`, `login.html`, ...
-        # Probeer eerst exact bestand, daarna met `.html` suffix.
         if candidate.is_file():
             return FileResponse(str(candidate))
-        html_candidate = static_dir / f"{full_path}.html"
-        if html_candidate.is_file():
-            return FileResponse(str(html_candidate))
+
+        parts = [p for p in full_path.split("/") if p]
+        resolved = _resolve_static_html(parts)
+        if resolved is not None:
+            return FileResponse(str(resolved))
 
     index_path = static_dir / "index.html"
     if index_path.is_file():
