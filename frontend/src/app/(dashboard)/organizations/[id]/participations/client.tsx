@@ -24,7 +24,7 @@ type Participation = {
   child_name: string;
 };
 
-export default function AdminParticipationsPageClient() {
+export function AdminParticipationsPageClient() {
   const params = useParams<{ id: string }>();
   const orgId = params.id;
   const searchParams = useSearchParams();

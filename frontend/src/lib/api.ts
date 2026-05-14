@@ -7,7 +7,8 @@ export type LoginResponse = {
   user: { id: string; email: string; org_id?: string };
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// Default: relatief (= same-origin). Lokaal dev kan NEXT_PUBLIC_API_URL=http://localhost:8000 zetten.
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 const BASE = `${API_URL}/api/v1`;
 
 class ApiError extends Error {

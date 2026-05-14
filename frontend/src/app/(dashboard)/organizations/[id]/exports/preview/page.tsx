@@ -1,16 +1,9 @@
-"use client";
+import { AdminExportPreviewPageClient } from "./client";
 
-import { useParams } from "next/navigation";
-import { ExportPreviewView } from "@/components/ExportPreviewView";
+export async function generateStaticParams() {
+  return [{ id: "_" }];
+}
 
 export default function AdminExportPreviewPage() {
-  const params = useParams<{ id: string }>();
-  const id = params.id;
-  return (
-    <ExportPreviewView
-      previewPath={`/organizations/${id}/exports/preview`}
-      generatePath={`/organizations/${id}/exports/from-local`}
-      title="XML voorvertoning"
-    />
-  );
+  return <AdminExportPreviewPageClient />;
 }

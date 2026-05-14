@@ -1,9 +1,11 @@
+import os
 import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -35,13 +37,16 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+_cors_raw = os.getenv("CORS_ORIGINS", "http://localhost:3000")
+_cors_origins = [o.strip() for o in _cors_raw.split(",") if o.strip()]
+if _cors_origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=_cors_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 
 @app.middleware("http")
@@ -55,44 +60,38 @@ async def add_request_id(request: Request, call_next):
 app.add_exception_handler(AppError, app_error_handler)
 app.include_router(v1_router, prefix="/api/v1")
 
-# === FRONTEND STATIC FILES SERVING ===
+# === FRONTEND STATIC FILES SERVING (Next.js export) ===
 
-# Create static directories if they don't exist
 static_dir = Path(__file__).parent / "static"
-assets_dir = static_dir / "assets"
-static_dir.mkdir(exist_ok=True)
-assets_dir.mkdir(exist_ok=True)
 
-# Mount static assets on /assets (CSS, JS, images, etc.)
-if assets_dir.exists():
-    app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="assets")
+# Mount Next's _next subdir (gehashed JS/CSS/chunks). Exact pad uit next-export output.
+_next_dir = static_dir / "_next"
+if _next_dir.exists():
+    app.mount("/_next", StaticFiles(directory=str(_next_dir)), name="next-static")
 
 
-# Root route: serve frontend index.html on /
-@app.get("/", include_in_schema=False)
-async def serve_frontend_root():
-    """Serve frontend login page at root path. Hidden from OpenAPI docs."""
-    index_path = static_dir / "index.html"
-    if index_path.exists():
-        from fastapi.responses import FileResponse
-        return FileResponse(str(index_path), media_type="text/html")
-    return {"error": "Frontend not found"}, 404
-
-
-# Catch-all SPA fallback: serve index.html for unknown routes (enables client-side routing)
 @app.get("/{full_path:path}", include_in_schema=False)
-async def serve_spa_fallback(full_path: str):
+async def spa(full_path: str):
     """
-    Fallback route for SPA client-side routing.
-    Catches /login, /dashboard, /reset-password, etc. and returns index.html.
-    Excludes /api/* and /docs.
+    Catch-all voor frontend:
+    - /api/* en /docs/* worden expliciet uitgesloten (vallen door naar 404).
+    - Bestaande bestanden in static/ (bv. /favicon.ico, /robots.txt) worden direct geserveerd.
+    - Anders: index.html teruggeven zodat client-side router de route oplost.
     """
-    # Exclude API routes and documentation
-    if full_path.startswith("api/") or full_path in ("docs", "openapi.json", "redoc"):
-        return {"error": "Not found"}, 404
-    
+    if full_path.startswith("api/") or full_path in ("docs", "redoc", "openapi.json"):
+        raise HTTPException(status_code=404)
+
+    if full_path:
+        candidate = static_dir / full_path
+        # Statische export bouwt routes als `dashboard.html`, `login.html`, ...
+        # Probeer eerst exact bestand, daarna met `.html` suffix.
+        if candidate.is_file():
+            return FileResponse(str(candidate))
+        html_candidate = static_dir / f"{full_path}.html"
+        if html_candidate.is_file():
+            return FileResponse(str(html_candidate))
+
     index_path = static_dir / "index.html"
-    if index_path.exists():
-        from fastapi.responses import FileResponse
+    if index_path.is_file():
         return FileResponse(str(index_path), media_type="text/html")
-    return {"error": "Frontend not found"}, 404
+    raise HTTPException(status_code=404, detail="Frontend niet gebouwd")

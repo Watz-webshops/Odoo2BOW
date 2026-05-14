@@ -22,7 +22,7 @@ const STATUS_LABELS: Record<ExportStatus, string> = {
   failed:     "Mislukt",
 };
 
-export default function ExportDetailPageClient() {
+export function ExportDetailPageClient() {
   const params = useParams<{ id: string }>();
   const id = params.id;
 

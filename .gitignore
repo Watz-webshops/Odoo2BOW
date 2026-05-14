@@ -22,6 +22,9 @@ out/
 .turbo/
 *.tsbuildinfo
 
+# Frontend build output gekopieerd naar backend (gegenereerd door Render build)
+backend/app/static/
+
 # Env
 .env
 .env.local

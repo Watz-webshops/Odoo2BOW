@@ -15,7 +15,7 @@ type Beneficiary = {
   child_name: string;
 };
 
-export default function AdminBeneficiariesPageClient() {
+export function AdminBeneficiariesPageClient() {
   const params = useParams<{ id: string }>();
   const orgId = params.id;
   const [q, setQ] = useState("");

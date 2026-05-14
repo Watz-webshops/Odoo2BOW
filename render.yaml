@@ -1,0 +1,28 @@
+# Render config — single Web Service die FastAPI + Next-export samen serveert.
+# Secrets (DATABASE_URL, SECRET_KEY, ADMIN_JWT_SECRET, ENCRYPTION_KEY) blijven
+# in het Render dashboard en zijn NIET in deze file vermeld.
+
+services:
+  - type: web
+    name: odoo2bow
+    env: python
+    plan: free
+    region: frankfurt
+    buildCommand: |
+      set -e
+      cd frontend
+      npm ci
+      npm run build
+      rm -rf ../backend/app/static
+      mv out ../backend/app/static
+      cd ../backend
+      pip install -e .
+    startCommand: |
+      cd backend && alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: NODE_VERSION
+        value: "22"
+      # NEXT_PUBLIC_API_URL bewust niet gezet → frontend gebruikt relatieve URL's (same-origin).
+      # CORS_ORIGINS bewust niet gezet → CORS-middleware wordt overgeslagen (same-origin).

@@ -16,7 +16,7 @@ type OdooEvent = {
   synced_at: string | null;
 };
 
-export default function AdminEventsPageClient() {
+export function AdminEventsPageClient() {
   const params = useParams<{ id: string }>();
   const orgId = params.id;
 

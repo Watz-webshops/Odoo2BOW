@@ -47,7 +47,7 @@ type SyncStatus = {
   }>;
 };
 
-export default function AdminOdooConnectionPageClient() {
+export function AdminOdooConnectionPageClient() {
   const params = useParams<{ id: string }>();
   const orgId = params.id;
   const apiBase = `/organizations/${orgId}`;

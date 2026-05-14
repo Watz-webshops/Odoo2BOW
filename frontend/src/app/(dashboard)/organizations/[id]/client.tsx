@@ -10,7 +10,7 @@ import { useState } from "react";
 import { Calendar, Database, Eye, KeyRound, ScrollText, Trash2, Copy, Check, Users } from "lucide-react";
 import { BowFieldsEditor } from "@/components/BowFieldsEditor";
 
-export default function OrgDetailPageClient() {
+export function OrgDetailPageClient() {
   const params = useParams<{ id: string }>();
   const id = params.id;
   const qc = useQueryClient();

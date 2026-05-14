@@ -1,9 +1,14 @@
+import { Suspense } from "react";
 import { AdminParticipationsPageClient } from "./client";
 
 export async function generateStaticParams() {
-  return [];
+  return [{ id: "_" }];
 }
 
 export default function AdminParticipationsPage() {
-  return <AdminParticipationsPageClient />;
+  return (
+    <Suspense>
+      <AdminParticipationsPageClient />
+    </Suspense>
+  );
 }
