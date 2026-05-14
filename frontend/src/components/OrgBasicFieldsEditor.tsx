@@ -38,7 +38,7 @@ function fromOrg(org: Organization): FormState {
 }
 
 function toPayload(s: FormState): OrganizationUpdate {
-  const v = (x: string) => (x.trim() === "" ? null : x);
+  const v = (x: string): string | undefined => (x.trim() === "" ? undefined : x);
   return {
     name: s.name.trim(),
     street: v(s.street),
