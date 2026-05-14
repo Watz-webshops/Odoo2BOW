@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Copy, Check, Database, RefreshCw, Trash2, Zap } from "lucide-react";
 import { api } from "@/lib/api";
+import { useRouteSegment } from "@/lib/route";
 
 type Connection = {
   id: string;
@@ -48,8 +48,7 @@ type SyncStatus = {
 };
 
 export function AdminOdooConnectionPageClient() {
-  const params = useParams<{ id: string }>();
-  const orgId = params.id;
+  const orgId = useRouteSegment("/organizations");
   const apiBase = `/organizations/${orgId}`;
 
   const qc = useQueryClient();

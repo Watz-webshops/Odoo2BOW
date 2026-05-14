@@ -1,11 +1,11 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "next/navigation";
 import { api } from "@/lib/api";
 import type { ExportRecord, ExportStatus } from "@/types/export";
 import { centsToEur } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { useRouteSegment } from "@/lib/route";
 import { Download, AlertTriangle } from "lucide-react";
 
 const STATUS_STYLES: Record<ExportStatus, string> = {
@@ -23,8 +23,7 @@ const STATUS_LABELS: Record<ExportStatus, string> = {
 };
 
 export function ExportDetailPageClient() {
-  const params = useParams<{ id: string }>();
-  const id = params.id;
+  const id = useRouteSegment("/exports");
 
   const { data: exp } = useQuery({
     queryKey: ["exports", id],

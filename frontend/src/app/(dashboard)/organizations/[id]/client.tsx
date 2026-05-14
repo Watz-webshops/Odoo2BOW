@@ -1,18 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type { Organization, ApiToken, ApiTokenCreated } from "@/types/organization";
 import { formatDate } from "@/lib/utils";
+import { useRouteSegment } from "@/lib/route";
 import { useState } from "react";
 import { Calendar, Database, Eye, KeyRound, ScrollText, Trash2, Copy, Check, Users } from "lucide-react";
 import { BowFieldsEditor } from "@/components/BowFieldsEditor";
 
 export function OrgDetailPageClient() {
-  const params = useParams<{ id: string }>();
-  const id = params.id;
+  const id = useRouteSegment("/organizations");
   const qc = useQueryClient();
   const [newToken, setNewToken] = useState<ApiTokenCreated | null>(null);
   const [copied, setCopied] = useState(false);

@@ -1,11 +1,10 @@
 "use client";
 
-import { useParams } from "next/navigation";
 import { ExportPreviewView } from "@/components/ExportPreviewView";
+import { useRouteSegment } from "@/lib/route";
 
 export function AdminExportPreviewPageClient() {
-  const params = useParams<{ id: string }>();
-  const id = params.id;
+  const id = useRouteSegment("/organizations");
   return (
     <ExportPreviewView
       previewPath={`/organizations/${id}/exports/preview`}

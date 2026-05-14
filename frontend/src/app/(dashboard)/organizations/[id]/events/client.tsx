@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Calendar } from "lucide-react";
 import { api } from "@/lib/api";
+import { useRouteSegment } from "@/lib/route";
 
 type OdooEvent = {
   id: string;
@@ -17,8 +17,7 @@ type OdooEvent = {
 };
 
 export function AdminEventsPageClient() {
-  const params = useParams<{ id: string }>();
-  const orgId = params.id;
+  const orgId = useRouteSegment("/organizations");
 
   const { data, isLoading } = useQuery({
     queryKey: ["org", orgId, "events"],

@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, ScrollText } from "lucide-react";
 import { api } from "@/lib/api";
 import { centsToEur } from "@/lib/utils";
+import { useRouteSegment } from "@/lib/route";
 
 type Participation = {
   id: string;
@@ -25,8 +26,7 @@ type Participation = {
 };
 
 export function AdminParticipationsPageClient() {
-  const params = useParams<{ id: string }>();
-  const orgId = params.id;
+  const orgId = useRouteSegment("/organizations");
   const searchParams = useSearchParams();
   const eventFilter = searchParams.get("event_odoo_id");
 

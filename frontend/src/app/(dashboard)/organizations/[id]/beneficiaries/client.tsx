@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Search, Users } from "lucide-react";
 import { api } from "@/lib/api";
+import { useRouteSegment } from "@/lib/route";
 
 type Beneficiary = {
   parent_rrn: string;
@@ -16,8 +16,7 @@ type Beneficiary = {
 };
 
 export function AdminBeneficiariesPageClient() {
-  const params = useParams<{ id: string }>();
-  const orgId = params.id;
+  const orgId = useRouteSegment("/organizations");
   const [q, setQ] = useState("");
 
   const { data, isLoading } = useQuery({
