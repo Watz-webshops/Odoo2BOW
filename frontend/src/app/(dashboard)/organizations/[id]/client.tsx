@@ -9,6 +9,7 @@ import { useRouteSegment } from "@/lib/route";
 import { useState } from "react";
 import { Calendar, Database, Eye, KeyRound, ScrollText, Trash2, Copy, Check, Users } from "lucide-react";
 import { BowFieldsEditor } from "@/components/BowFieldsEditor";
+import { OrgBasicFieldsEditor } from "@/components/OrgBasicFieldsEditor";
 
 export function OrgDetailPageClient() {
   const id = useRouteSegment("/organizations");
@@ -52,14 +53,7 @@ export function OrgDetailPageClient() {
     <div className="space-y-6 max-w-2xl">
       <h1 className="text-xl font-semibold text-gray-900">{org.name}</h1>
 
-      <section className="bg-white rounded-xl border border-gray-200 p-5 space-y-2 text-sm">
-        <Row label="KBO" value={org.kbo} />
-        <Row label="Adres" value={[org.street, org.zip, org.city].filter(Boolean).join(", ") || "—"} />
-        <Row label="Contactpersoon" value={org.contact_name ?? "—"} />
-        <Row label="E-mail" value={org.contact_email ?? "—"} />
-        <Row label="Telefoon" value={org.contact_phone ?? "—"} />
-        <Row label="Taalcode" value={org.language_code} />
-      </section>
+      <OrgBasicFieldsEditor org={org} onSaved={() => qc.invalidateQueries({ queryKey: ["organizations", id] })} />
 
       <BowFieldsEditor org={org} onSaved={() => qc.invalidateQueries({ queryKey: ["organizations", id] })} />
 
@@ -162,11 +156,3 @@ export function OrgDetailPageClient() {
   );
 }
 
-function Row({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="flex gap-4">
-      <span className="w-32 text-gray-500 flex-shrink-0">{label}</span>
-      <span className="text-gray-900">{value}</span>
-    </div>
-  );
-}
