@@ -1,39 +1,57 @@
 """
 Mapping helpers: Odoo records → lokale rijen.
 
-Conventie voor vraag-titels (case-insensitive, partial match):
+Survey-antwoorden leveren alleen nog de RRN's:
   - 'rrn kind' / 'rijksregisternummer kind'        → child.rrn
+  - 'rrn ouder' / 'rijksregisternummer ouder'      → parent.rrn
+
+Voor- en achternaam van het kind komen uit de Odoo Properties op de
+event.registration ('registration_properties'). Gematcht op het property-label
+(case-insensitive, partial match):
   - 'voornaam kind' / 'kind voornaam'              → child.first_name
   - 'achternaam kind' / 'kind achternaam'          → child.last_name
-  - 'rrn ouder' / 'rijksregisternummer ouder'      → parent.rrn
 """
 from __future__ import annotations
 
-# Canonieke titels (lowercase) — alle moeten als substring matchen
+# Survey-vragen — alleen nog RRN's
 QUESTION_PATTERNS = {
     "child_rrn": ["rrn kind", "rijksregisternummer kind", "rijksregister kind"],
-    "child_first_name": ["voornaam kind", "kind voornaam", "first name child"],
-    "child_last_name": ["achternaam kind", "kind achternaam", "last name child", "naam kind"],
     "parent_rrn": ["rrn ouder", "rijksregisternummer ouder", "rijksregister ouder"],
 }
 
-REQUIRED_QUESTION_KEYS = ["child_rrn", "child_first_name", "child_last_name", "parent_rrn"]
+REQUIRED_QUESTION_KEYS = ["child_rrn", "parent_rrn"]
+
+# Property-labels op event.registration — kindvoornaam/achternaam
+PROPERTY_PATTERNS = {
+    "child_first_name": ["voornaam kind", "kind voornaam", "first name child"],
+    "child_last_name": ["achternaam kind", "kind achternaam", "last name child", "naam kind"],
+}
 
 
 def classify_question(title: str) -> str | None:
     """
-    Geeft de canonieke key terug (child_rrn, child_first_name, etc.) of None
+    Geeft de canonieke key terug (child_rrn / parent_rrn) of None
     als de title niet matcht.
     """
     if not title:
         return None
     t = title.lower().strip()
-    # Specifieke matches eerst (langste eerst om "naam kind" niet child_last te laten matchen voor "voornaam kind")
+    for key, patterns in QUESTION_PATTERNS.items():
+        for pat in patterns:
+            if pat in t:
+                return key
+    return None
+
+
+def classify_property(label: str) -> str | None:
+    """Geeft de canonieke key terug (child_first_name / child_last_name) of None."""
+    if not label:
+        return None
+    t = label.lower().strip()
+    # child_first_name eerst zodat "voornaam kind" niet als child_last_name matcht op "naam kind"
     ordered = [
-        ("child_rrn", QUESTION_PATTERNS["child_rrn"]),
-        ("parent_rrn", QUESTION_PATTERNS["parent_rrn"]),
-        ("child_first_name", QUESTION_PATTERNS["child_first_name"]),
-        ("child_last_name", QUESTION_PATTERNS["child_last_name"]),
+        ("child_first_name", PROPERTY_PATTERNS["child_first_name"]),
+        ("child_last_name", PROPERTY_PATTERNS["child_last_name"]),
     ]
     for key, patterns in ordered:
         for pat in patterns:
@@ -59,8 +77,8 @@ def parse_answers(
     answer_values: dict[int, str],
 ) -> dict[str, str | None]:
     """
-    Returnt dict met child_rrn, child_first_name, child_last_name, parent_rrn.
-    Normaliseert RRN's (alleen cijfers, max 11) en knipt namen op 100 chars.
+    Returnt dict met child_rrn, parent_rrn.
+    Normaliseert RRN's (alleen cijfers, max 11).
     """
     result: dict[str, str | None] = {k: None for k in REQUIRED_QUESTION_KEYS}
     for ans in answers:
@@ -87,15 +105,35 @@ def parse_answers(
         if not value:
             continue
 
-        # Normaliseer per veldtype
-        if key in ("child_rrn", "parent_rrn"):
-            normalized = _normalize_rrn(value)
-            if len(normalized) == 11:
-                result[key] = normalized
-            # Anders: ongeldige RRN → blijft None, fiche wordt later overgeslagen
-        else:
-            # Namen: max 100 chars
-            result[key] = _truncate(value, 100)
+        normalized = _normalize_rrn(value)
+        if len(normalized) == 11:
+            result[key] = normalized
+        # Anders: ongeldige RRN → blijft None, fiche wordt later overgeslagen
+
+    return result
+
+
+def parse_properties(properties) -> dict[str, str | None]:
+    """
+    Parse Odoo Properties-veld (registration_properties) naar
+    child_first_name / child_last_name. Odoo levert dit als list[dict],
+    elk dict met o.a. 'string' (label) en 'value' (waarde).
+    """
+    result: dict[str, str | None] = {"child_first_name": None, "child_last_name": None}
+    if not properties or not isinstance(properties, list):
+        return result
+
+    for prop in properties:
+        if not isinstance(prop, dict):
+            continue
+        label = prop.get("string") or ""
+        key = classify_property(label)
+        if not key:
+            continue
+        value = prop.get("value")
+        if value is None or value == "" or value is False:
+            continue
+        result[key] = _truncate(str(value), 100)
 
     return result
 

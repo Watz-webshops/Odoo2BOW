@@ -76,6 +76,7 @@ class OdooClient:
         fields = [
             "id", "event_id", "partner_id", "state",
             "event_ticket_id", "registration_answer_ids",
+            "registration_properties",
         ]
         while True:
             rows = self.search_read("event.registration", [], fields, limit=batch, offset=offset)

@@ -21,7 +21,7 @@ from app.models.odoo_partner import OdooPartner
 from app.models.odoo_registration import OdooRegistration
 from app.models.odoo_sync_log import OdooSyncLog
 from app.services.odoo_client import OdooClient
-from app.services.odoo_mapper import parse_answers
+from app.services.odoo_mapper import parse_answers, parse_properties
 
 
 async def _client_from_connection(conn: OdooConnection) -> OdooClient:
@@ -279,6 +279,7 @@ async def bootstrap_sync(org_id: uuid.UUID) -> None:
                     answers_per_reg.get(r["id"], []),
                     question_titles, answer_values,
                 )
+                parsed.update(parse_properties(r.get("registration_properties")))
                 await _upsert_registration(db, org_id, r, ticket_prices, parsed)
 
             # Mark connection
@@ -340,7 +341,8 @@ async def sync_one(org_id: uuid.UUID, model: str, odoo_id: int, action: str) -> 
             elif model == "event.registration":
                 rows = await asyncio.to_thread(
                     client.search_read, "event.registration", [("id", "=", odoo_id)],
-                    ["id", "event_id", "partner_id", "state", "event_ticket_id", "registration_answer_ids"], 1,
+                    ["id", "event_id", "partner_id", "state", "event_ticket_id",
+                     "registration_answer_ids", "registration_properties"], 1,
                 )
                 if rows:
                     r = rows[0]
@@ -368,6 +370,7 @@ async def sync_one(org_id: uuid.UUID, model: str, odoo_id: int, action: str) -> 
                     avalues = await asyncio.to_thread(client.get_question_answer_values, list(avids))
 
                     parsed = parse_answers(answers, qtitles, avalues)
+                    parsed.update(parse_properties(r.get("registration_properties")))
                     await _upsert_registration(db, org_id, r, ticket_prices, parsed)
                     counts["regs"] = 1
 
